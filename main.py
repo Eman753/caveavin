@@ -119,11 +119,20 @@ def getAndTabulateFromBDD(objet):
 # Et on différencie les objets stockés en BDD
 def bdd():
     z = True
+    print("")
+    print("------------------------------------------------------")
+    print("Bienvenue en mode BDD")
+    print("------------------------------------------------------")
+    print("")
+    print("######################################################")
+    print("Vous avez les pleins droits sur la BDD")
+    print("Soyez prudent")
+    print("######################################################")
     while z:
         print("")
-        print("Bienvenue en mode BDD")
-        print("")
+        print("------------------------------------------------------")
         print("Voici les actions disponibles")
+        print("------------------------------------------------------")
         print("")
         print("exit - Sortir du mode BDD")
         print("showuser - Liste les utilisateurs présents dans la BDD")
@@ -152,9 +161,13 @@ def bdd():
 def cli():
     z = True
     print("")
+    print("------------------------------------------------------------------------------------")
     print("Bienvenue sur l'interface en ligne de commandes de caveavin !")
+    print("------------------------------------------------------------------------------------")
     print("")
+    print("####################################################################################")
     print("Connecté en tant qu'utilisateur console. Toutes les permissions accordées")
+    print("####################################################################################")
     while z:
         print("")
         print("Voici les actions disponibles")
