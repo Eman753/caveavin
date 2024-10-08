@@ -99,11 +99,11 @@ def getAndTabulateFromBDD(objet):
     tableau = []
     error = 0
     if objet == "user":
-        c.execute("select login,nom,prenom,passwd,inscription from users")
+        c.execute("select id,login,nom,prenom,passwd,inscription from users")
         result = c.fetchall()
         if result:
             tableau = [list(row) for row in result]
-            headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
+            headers = ["ID","Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
             c.close()
             db.close()
             return tabulate(tableau, headers=headers, tablefmt="grid")
