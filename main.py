@@ -75,14 +75,13 @@ def getAndTabulateFromBDD(objet):
     error = 0
     if objet == "user":
         c.execute("select login,nom,prenom,passwd,inscription from users")
-        result = c.fetchone()
+        result = c.fetchall()
         if result:
-            for i in result:
-                tableau.append(i)
+            tableau = [list(row) for row in result]
             headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
             c.close()
             db.close()
-            return tabulate([tableau], headers=headers, tablefmt="grid")
+            return tabulate(tableau, headers=headers, tablefmt="grid")
         else:
             error = 2
             return error
