@@ -67,13 +67,34 @@ def getAndTabulate(liste,objet):
             headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
         return tabulate(tableau, headers=headers, tablefmt="grid")
 
+# Fonction similaire à celle du dessus, mais va chercher dans la BDD
+def getAndTabulateFromBDD(objet):
+    db = sql_conn()
+    c = db.cursor()
+    tableau = []
+    error = 0
+    if objet == "user":
+        c.execute("select login,nom,prenom,passwd,inscription from users")
+        result = c.fetchone()
+        if result:
+            for i in result:
+                tableau.append(i)
+            headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
+            c.close()
+            db.close()
+            return tabulate([tableau], headers=headers, tablefmt="grid")
+        else:
+            error = 2
+            return error
+    else:
+        error = 1
+        return error
+
 # Second CLI interactif pour les interactions avec la BDD
 # De cette manière, on différencie la gestion des objets Python, qui ne durent que le temps de fonctionnement du programme
 # Et on différencie les objets stockés en BDD
 def bdd():
     z = True
-    db = sql_conn()
-    c = db.cursor()
     while z:
         print("")
         print("Bienvenue en mode BDD")
@@ -90,7 +111,13 @@ def bdd():
                 print("Sortie du mode BDD")
                 z = False
             elif command == "showuser" or command == "SHOWUSER":
-                print("showuser")
+                result = getAndTabulateFromBDD("user")
+                if result == 1:
+                    print("Une erreur a eu lieu pendant le traitement de la demande")
+                elif result == 2:
+                    print("Aucun objet n'a été trouvé dans la BDD")
+                else:
+                    print(result)
             else:
                 print("Commande inconnue")
         except TypeError as e:
@@ -102,6 +129,8 @@ def cli():
     z = True
     print("")
     print("Bienvenue sur l'interface en ligne de commandes de caveavin !")
+    print("")
+    print("Connecté en tant qu'utilisateur console. Toutes les permissions accordées")
     while z:
         print("")
         print("Voici les actions disponibles")
@@ -112,7 +141,7 @@ def cli():
         print("showuser - Voir la liste d'utilisateurs")
         print("")
         try:
-            command = str(input("Commande# -> "))
+            command = str(input("MainCLI# -> "))
             print("")
             if command == "exit" or command == "EXIT":
                 print("Déconnexion !")
