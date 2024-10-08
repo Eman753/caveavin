@@ -162,6 +162,7 @@ def cli():
         print("exit - Quitter le programme")
         print("bdd - Entrer en mode BDD pour intéragir avec la BDD")
         print("recreateuser - Recréer les utilisateurs Python à partir de la BDD")
+        print("clearuser - Vider la liste d'utilisateurs locaux (n'agit pas sur la BDD)")
         print("register - Enregistrer un utilisateur dans le système")
         print("showuser - Voir la liste d'utilisateurs")
         print("")
@@ -198,6 +199,14 @@ def cli():
                     print("Aucun utilisateur présent dans la BDD")
                 else:
                     recreateUsers()
+            elif command == "clearuser" or command == "CLEARUSER":
+                try:
+                    ListeUtilisateurs.clear()
+                    print("Liste d'utilisateurs locaux vidée !")
+                    print("")
+                    print("Pour ré-actualiser la liste d'utilisateurs locaux à partir de la BDD, lancez recreateuser")
+                except TypeError as e:
+                    print("Erreur lors de la vidange de la liste d'utilisateurs locaux")
             else:
                 print("Commande inconnue")
         except TypeError as e:
