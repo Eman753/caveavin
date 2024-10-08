@@ -131,6 +131,23 @@ def wipe(table):
         db.close()
         return error
 
+# Fonction pour supprimer un utilisateur de la BDD
+def deleteUserFromBDD(id):
+    error = 0
+    db = sql_conn()
+    c = db.cursor()
+    try:
+        c.execute("delete from users where id = "+str(id))
+        db.commit()
+        c.close()
+        db.close
+        return error
+    except Exception as e:
+        error = 1
+        c.close()
+        db.close()
+        return error
+
 # Second CLI interactif pour les interactions avec la BDD
 # De cette manière, on différencie la gestion des objets Python, qui ne durent que le temps de fonctionnement du programme
 # Et on différencie les objets stockés en BDD
@@ -154,6 +171,7 @@ def bdd():
         print("exit - Sortir du mode BDD")
         print("showuser - Liste les utilisateurs présents dans la BDD")
         print("wipeuser - SUPPRIMER L'ENTIERETE DES UTILISATEURS DE LA BDD")
+        print("deleteuser - Supprimer un utilisateur grâce à son ID")
         try:
             print("")
             command = str(input("BDD# -> "))
@@ -180,6 +198,20 @@ def bdd():
                         print("Table des utilisateurs vidée")
                 else:
                     print("Opération annulée")
+            elif command == "deleteuser" or command == "DELETEUSER":
+                try:
+                    id = int(input("Identifiant de l'utilisateur ? (Taper 0 pour annuler) -> "))
+                    print("")
+                    if id == 0:
+                        print("Manipulation annulée")
+                    else:
+                        result = deleteUserFromBDD(id)
+                        if result == 1:
+                            print("Une erreur est survenue pendant la suppression de l'utilisateur "+str(id))
+                        else:
+                            print("Suppression effectuée")
+                except Exception as e:
+                    print("Une erreur est survenue")
             else:
                 print("Commande inconnue")
         except TypeError as e:
