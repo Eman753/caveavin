@@ -114,6 +114,22 @@ def getAndTabulateFromBDD(objet):
         error = 1
         return error
 
+def wipe(table):
+    error = 0
+    db = sql_conn()
+    c = db.cursor()
+    try:
+        c.execute("delete from "+table)
+        db.commit()
+        c.close()
+        db.close()
+        return error
+    except Exception as e:
+        error = 1
+        c.close()
+        db.close()
+        return error
+
 # Second CLI interactif pour les interactions avec la BDD
 # De cette manière, on différencie la gestion des objets Python, qui ne durent que le temps de fonctionnement du programme
 # Et on différencie les objets stockés en BDD
@@ -136,6 +152,7 @@ def bdd():
         print("")
         print("exit - Sortir du mode BDD")
         print("showuser - Liste les utilisateurs présents dans la BDD")
+        print("wipeuser - SUPPRIMER L'ENTIERETE DES UTILISATEURS DE LA BDD")
         try:
             print("")
             command = str(input("BDD# -> "))
@@ -151,6 +168,17 @@ def bdd():
                     print("Aucun objet n'a été trouvé dans la BDD")
                 else:
                     print(result)
+            elif command == "wipeuser" or command == "WIPEUSER":
+                confirm = str(input("Êtes-vous sûr de votre choix ? y/N -> "))
+                print("")
+                if confirm == "y":
+                    result = wipe("users")
+                    if result == 1:
+                        print("Une erreur est survenue pendant la remise à zéro de la table des utilisateurs")
+                    else:
+                        print("Table des utilisateurs vidée")
+                else:
+                    print("Opération annulée")
             else:
                 print("Commande inconnue")
         except TypeError as e:
