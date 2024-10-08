@@ -60,6 +60,7 @@ class Utilisateur:
 # Fonction permettant de recréer les objets Python à partir des objets dans la BDD
 def recreateUsers():
     error = 0
+    ListeUtilisateurs.clear()
     try:
         db = sql_conn()
         c = db.cursor()
@@ -87,9 +88,9 @@ def getAndTabulate(liste,objet):
     for i in liste:
         if isinstance(i, objet):
             tableau.append(i.getInfo())  # Récupère les infos sous forme de tuple
-        if objet == Utilisateur:
-            headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
-        return tabulate(tableau, headers=headers, tablefmt="grid")
+    if objet == Utilisateur:
+        headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
+    return tabulate(tableau, headers=headers, tablefmt="grid")
 
 # Fonction similaire à celle du dessus, mais va chercher dans la BDD
 def getAndTabulateFromBDD(objet):
@@ -196,7 +197,7 @@ def cli():
                 elif result == 2:
                     print("Aucun utilisateur présent dans la BDD")
                 else:
-                    ListeUtilisateurs = result
+                    recreateUsers()
             else:
                 print("Commande inconnue")
         except TypeError as e:
