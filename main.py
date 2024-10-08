@@ -96,6 +96,7 @@ def cli():
                 inscription = str(input("Date d'inscription (DD-MM-YYYY) -> "))
                 new_user = Utilisateur(login,nom,prenom,passwd,inscription)
                 ListeUtilisateurs.append(new_user)
+                new_user.registerBDD()
             elif command == "showuser" or command == "SHOWUSER":
                 print(getAndTabulate(ListeUtilisateurs,Utilisateur))
             else:
