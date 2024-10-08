@@ -67,26 +67,51 @@ def getAndTabulate(liste,objet):
             headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
         return tabulate(tableau, headers=headers, tablefmt="grid")
 
+# Second CLI interactif pour les interactions avec la BDD
+# De cette manière, on différencie la gestion des objets Python, qui ne durent que le temps de fonctionnement du programme
+# Et on différencie les objets stockés en BDD
+def bdd():
+    z = True
+    db = sql_conn()
+    c = db.cursor()
+    while z:
+        print("")
+        print("Bienvenue en mode BDD")
+        print("")
+        print("Voici les actions disponibles")
+        print("")
+        print("exit - Sortir du mode BDD")
+        try:
+            print("")
+            command = str(input("BDD# -> "))
+            print("")
+            if command == "exit" or command == "EXIT":
+                print("Sortie du mode BDD")
+                z = False
+        except TypeError as e:
+            print("Erreur lors du traitement de la commande (TypeError)")
+
 # CLI interactif. Peut être utilisé en même temps que Flask.
 # Servira aussi pour journaliser les actions
 def cli():
-    c = True
+    z = True
     print("")
     print("Bienvenue sur l'interface en ligne de commandes de caveavin !")
-    while c:
+    while z:
         print("")
         print("Voici les actions disponibles")
         print("")
         print("exit - Quitter le programme")
+        print("bdd - Entrer en mode BDD pour intéragir avec la BDD")
         print("register - Enregistrer un utilisateur dans le système")
         print("showuser - Voir la liste d'utilisateurs")
         print("")
         try:
-            command = str(input("Commande -> "))
+            command = str(input("Commande# -> "))
             print("")
             if command == "exit" or command == "EXIT":
                 print("Déconnexion !")
-                c = False
+                z = False
             elif command == "register" or command == "REGISTER":
                 login = str(input("Login -> "))
                 nom = str(input("Nom -> "))
@@ -99,6 +124,8 @@ def cli():
                 new_user.registerBDD()
             elif command == "showuser" or command == "SHOWUSER":
                 print(getAndTabulate(ListeUtilisateurs,Utilisateur))
+            elif command == "bdd" or command == "BDD":
+                bdd()
             else:
                 print("Commande inconnue")
         except TypeError as e:
