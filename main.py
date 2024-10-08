@@ -114,6 +114,7 @@ def getAndTabulateFromBDD(objet):
         error = 1
         return error
 
+# Fonction permettant de vider une table de la BDD
 def wipe(table):
     error = 0
     db = sql_conn()
