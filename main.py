@@ -81,6 +81,7 @@ def bdd():
         print("Voici les actions disponibles")
         print("")
         print("exit - Sortir du mode BDD")
+        print("showuser - Liste les utilisateurs présents dans la BDD")
         try:
             print("")
             command = str(input("BDD# -> "))
@@ -88,6 +89,10 @@ def bdd():
             if command == "exit" or command == "EXIT":
                 print("Sortie du mode BDD")
                 z = False
+            elif command == "showuser" or command == "SHOWUSER":
+                print("showuser")
+            else:
+                print("Commande inconnue")
         except TypeError as e:
             print("Erreur lors du traitement de la commande (TypeError)")
 
