@@ -204,5 +204,6 @@ def cli():
             print("Erreur lors du traitement de la commande (TypeError)")
     print("Sortie du CLI")
 
+recreateUsers()
 cli()
 exit(0)
