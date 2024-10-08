@@ -9,6 +9,7 @@ import csv
 import hashlib
 import getpass
 from tabulate import tabulate
+from datetime import date
 
 # On déclare les listes contenant les objets, afin de pouvoir les stocker en RAM et facilement intéragir avec les objets.
 ListeUtilisateurs = []
@@ -55,6 +56,29 @@ class Utilisateur:
 
     def getInfo(self):
         return self.login, self.nom, self.prenom, self.passwd, self.inscription
+
+# Fonction permettant de recréer les objets Python à partir des objets dans la BDD
+def recreateUsers():
+    error = 0
+    try:
+        db = sql_conn()
+        c = db.cursor()
+        c.execute("select login,nom,prenom,passwd,inscription from users")
+        result = c.fetchall()
+        if result:
+            for row in result:
+                # Crée un objet Utilisateur pour chaque ligne et l'ajoute à la liste
+                new_user = Utilisateur(login=row[0], nom=row[1], prenom=row[2], passwd=row[3], inscription=row[4])
+                ListeUtilisateurs.append(new_user)
+            c.close()
+            db.close()
+            return ListeUtilisateurs
+        else:
+            error = 2
+            return error
+    except TypeError as e:
+        error = 1
+        return error
 
 # Fonction générique pour afficher la liste des objets d'une classe
 # Toutes les classes auront la même méthode getInfo permettant d'extraire les infos
@@ -136,6 +160,7 @@ def cli():
         print("")
         print("exit - Quitter le programme")
         print("bdd - Entrer en mode BDD pour intéragir avec la BDD")
+        print("recreateuser - Recréer les utilisateurs Python à partir de la BDD")
         print("register - Enregistrer un utilisateur dans le système")
         print("showuser - Voir la liste d'utilisateurs")
         print("")
@@ -151,14 +176,27 @@ def cli():
                 prenom = str(input("Prénom -> "))
                 passwd = getpass.getpass(prompt='Mot de passe -> ', stream=None)
                 passwd = hash(passwd)
-                inscription = str(input("Date d'inscription (YYYY-MM-DD) -> "))
+                inscription = date.today()
                 new_user = Utilisateur(login,nom,prenom,passwd,inscription)
                 ListeUtilisateurs.append(new_user)
                 new_user.registerBDD()
             elif command == "showuser" or command == "SHOWUSER":
-                print(getAndTabulate(ListeUtilisateurs,Utilisateur))
+                if ListeUtilisateurs is None:
+                    print("Aucun utilisateur n'existe dans la mémoire")
+                    print("")
+                    print("S'ils existent dans la BDD, lancez 'recreateuser'")
+                else:
+                    print(getAndTabulate(ListeUtilisateurs,Utilisateur))
             elif command == "bdd" or command == "BDD":
                 bdd()
+            elif command == "recreateuser" or command == "RECREATEUSER":
+                result = recreateUsers()
+                if result == 1:
+                    print("Erreur lors du traitement de la commande (TypeError)")
+                elif result == 2:
+                    print("Aucun utilisateur présent dans la BDD")
+                else:
+                    ListeUtilisateurs = result
             else:
                 print("Commande inconnue")
         except TypeError as e:
