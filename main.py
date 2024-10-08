@@ -93,7 +93,7 @@ def cli():
                 prenom = str(input("Prénom -> "))
                 passwd = getpass.getpass(prompt='Mot de passe -> ', stream=None)
                 passwd = hash(passwd)
-                inscription = str(input("Date d'inscription (DD-MM-YYYY) -> "))
+                inscription = str(input("Date d'inscription (YYYY-MM-DD) -> "))
                 new_user = Utilisateur(login,nom,prenom,passwd,inscription)
                 ListeUtilisateurs.append(new_user)
                 new_user.registerBDD()
