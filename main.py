@@ -105,6 +105,8 @@ def getAndTabulate(liste,objet):
             tableau.append(i.getInfo())  # Récupère les infos sous forme de tuple
     if objet == Utilisateur:
         headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
+    if objet == Cave:
+        headers = ["Nom","Nombre de bouteilles"]
     return tabulate(tableau, headers=headers, tablefmt="grid")
 
 # Fonction similaire à celle du dessus, mais va chercher dans la BDD
@@ -125,6 +127,15 @@ def getAndTabulateFromBDD(objet):
         else:
             error = 2
             return error
+    if objet == "cave":
+        c.execute("select id,nom,nombresBouteilles from caves")
+        result = c.fetchall()
+        if result:
+            tableau = [list(row) for row in result]
+            headers = ["ID","Nom","Nombre de bouteilles"]
+            c.close()
+            db.close()
+            return tabulate(tableau,headers=headers, tablefmt="grid")
     else:
         error = 1
         return error
@@ -147,12 +158,12 @@ def wipe(table):
         return error
 
 # Fonction pour supprimer un utilisateur de la BDD
-def deleteUserFromBDD(id):
+def deleteFromBDD(id,table):
     error = 0
     db = sql_conn()
     c = db.cursor()
     try:
-        c.execute("delete from users where id = "+str(id))
+        c.execute("delete from "+table+" where id = "+str(id))
         db.commit()
         c.close()
         db.close
@@ -187,6 +198,9 @@ def bdd():
         print("showuser - Liste les utilisateurs présents dans la BDD")
         print("wipeuser - SUPPRIMER L'ENTIERETE DES UTILISATEURS DE LA BDD")
         print("deleteuser - Supprimer un utilisateur grâce à son ID")
+        print("showcave - Liste des caves présentes dans la BDD")
+        print("wipecave - SUPPRIMER L'ENTIERETE DES CAVES DANS LA BDD")
+        print("deletecave - Supprimer une cave grâce à son ID")
         try:
             print("")
             command = str(input("BDD# -> "))
@@ -220,9 +234,42 @@ def bdd():
                     if id == 0:
                         print("Manipulation annulée")
                     else:
-                        result = deleteUserFromBDD(id)
+                        result = deleteFromBDD(id,"users")
                         if result == 1:
                             print("Une erreur est survenue pendant la suppression de l'utilisateur "+str(id))
+                        else:
+                            print("Suppression effectuée")
+                except Exception as e:
+                    print("Une erreur est survenue")
+            elif command == "showcave" or command == "SHOWCAVE":
+                result = getAndTabulateFromBDD("cave")
+                if result == 1:
+                    print("Une erreur a eu lieu pendant le traitement de la demande")
+                elif result == 2:
+                    print("Aucun objet n'a été trouvé dans la BDD")
+                else:
+                    print(result)
+            elif command == "wipecave" or command == "WIPECAVE":
+                confirm = str(input("Êtes-vous sûr de votre choix ? y/N -> "))
+                print("")
+                if confirm == "y":
+                    result = wipe("caves")
+                    if result == 1:
+                        print("Une erreur est survenue pendant la remise à zéro de la table des caves")
+                    else:
+                        print("Table des caves vidée")
+                else:
+                    print("Opération annulée")
+            elif command == "deletecave" or command == "DELETECAVE":
+                try:
+                    id = int(input("Identifiant de la cave ? (Taper 0 pour annuler) -> "))
+                    print("")
+                    if id == 0:
+                        print("Manipulation annulée")
+                    else:
+                        result = deleteFromBDD(id,"caves")
+                        if result == 1:
+                            print("Une erreur est survenue pendant la suppression de la cave "+str(id))
                         else:
                             print("Suppression effectuée")
                 except Exception as e:
@@ -251,7 +298,9 @@ def cli():
         print("exit - Quitter le programme")
         print("bdd - Entrer en mode BDD pour intéragir avec la BDD")
         print("recreateuser - Recréer les utilisateurs Python à partir de la BDD")
+        print("recreatecave - Recréer les caves Python à partir de la BDD")
         print("clearuser - Vider la liste d'utilisateurs locaux (n'agit pas sur la BDD)")
+        print("clearcave - Vider la liste de caves locales (n'agit pas sur la BDD)")
         print("register - Enregistrer un utilisateur dans le système")
         print("showuser - Voir la liste d'utilisateurs")
         print("createcave - Créer une cave virtuelle")
