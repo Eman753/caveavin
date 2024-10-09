@@ -96,10 +96,16 @@ class Etagere:
         return self.numero,self.emplacements,self.nombreBouteilles
 
 # Méthode utilisée pour enregistrer l'objet sur la BDD
-    def registerBDD(self):
+    def registerBDD(self,cave):
         db = sql_conn()
         c = db.cursor()
-        c.execute("insert into etageres values (DEFAULT,"+str(self.numero)+","+self.emplacements+","+self.nombreBouteilles+");")
+        print("---")
+        print(cave)
+        print(self.numero)
+        print(self.emplacements)
+        print(self.nombreBouteilles)
+        print("---")
+        c.execute("insert into etageres values (DEFAULT,"+str(cave)+","+str(self.numero)+","+str(self.emplacements)+","+str(self.nombreBouteilles)+");")
         db.commit()
         c.close()
         db.close()
@@ -481,11 +487,11 @@ def cli():
                     print("Erreur lors de la vidange de la liste de caves locales")
             elif command == "createetagere" or command == "createetagere":
                 try:
-                    cave = str(input("ID de la cave associée -> "))
+                    cave = int(input("ID de la cave associée -> "))
                     numero = int(input("Numéro de l'étagère dans la cave -> "))
                     emplacements = int(input("Nombre d'emplacements totaux -> "))
                     new_etagere = Etagere(numero,emplacements,0)
-                    new_etagere.registerBDD()
+                    new_etagere.registerBDD(cave)
                     print("Etagère créée !")
                 except Exception as e:
                     print("Erreur lors du traitement de la commande (Exception)")
