@@ -81,6 +81,29 @@ class Cave:
         c.close()
         db.close()
 
+# Classe des étagères
+class Etagere:
+
+# Méthode appelée à la création de l'objet pour définir ses attributs
+    def __init__(self,numero,emplacements,nombreBouteilles):
+        self.numero = numero
+        self.emplacements = emplacements
+        self.nombreBouteilles = nombreBouteilles
+        ListeBouteilles = []
+
+# Méthode pour retourner les attributs de l'objet
+    def getInfo(self):
+        return self.numero,self.emplacements,self.nombreBouteilles
+
+# Méthode utilisée pour enregistrer l'objet sur la BDD
+    def registerBDD(self):
+        db = sql_conn()
+        c = db.cursor()
+        c.execute("insert into etageres values (DEFAULT,"+str(self.numero)+","+self.emplacements+","+self.nombreBouteilles+");")
+        db.commit()
+        c.close()
+        db.close()
+
 # Fonction permettant de recréer les objets Python à partir des objets dans la BDD
 def recreateUsers():
     error = 0
@@ -116,7 +139,7 @@ def recreateCaves():
         result = c.fetchall()
         if result:
             for row in result:
-                new_cave = Cave(row[0],row[1])
+                new_cave = Cave(row[0],row[1],[])
                 ListeCaves.append(new_cave)
             c.close()
             db.close()
@@ -324,6 +347,31 @@ def bdd():
                     print("Aucun objet n'a été trouvé dans la BDD")
                 else:
                     print(result)
+            elif command == "wipeetagere" or command == "WIPEETAGERE":
+                confirm = str(input("Êtes-vous sûr de votre choix ? y/N -> "))
+                print("")
+                if confirm == "y":
+                    result = wipe("etageres")
+                    if result == 1:
+                        print("Une erreur est survenue pendant la remise à zéro de la table des étagères")
+                    else:
+                        print("Table des étagères vidée")
+                else:
+                    print("Opération annulée")
+            elif command == "deleteetagere" or command == "DELETEETAGERE":
+                try:
+                    id = int(input("Identifiant de l'étagère' ? (Taper 0 pour annuler) -> "))
+                    print("")
+                    if id == 0:
+                        print("Manipulation annulée")
+                    else:
+                        result = deleteFromBDD(id,"etageres")
+                        if result == 1:
+                            print("Une erreur est survenue pendant la suppression de l'étagère' "+str(id))
+                        else:
+                            print("Suppression effectuée")
+                except Exception as e:
+                    print("Une erreur est survenue")
             else:
                 print("Commande inconnue")
         except TypeError as e:
@@ -431,6 +479,16 @@ def cli():
                     print("Pour ré-actualiser la liste de caves locales à partir de la BDD, lancez recreatecave")
                 except TypeError as e:
                     print("Erreur lors de la vidange de la liste de caves locales")
+            elif command == "createetagere" or command == "createetagere":
+                try:
+                    cave = str(input("ID de la cave associée -> "))
+                    numero = int(input("Numéro de l'étagère dans la cave -> "))
+                    emplacements = int(input("Nombre d'emplacements totaux -> "))
+                    new_etagere = Etagere(numero,emplacements,0)
+                    new_etagere.registerBDD()
+                    print("Etagère créée !")
+                except Exception as e:
+                    print("Erreur lors du traitement de la commande (Exception)")
             else:
                 print("Commande inconnue")
         except TypeError as e:
