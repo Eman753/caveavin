@@ -67,7 +67,7 @@ class Cave:
     def registerBDD(self):
         db = sql_conn()
         c = db.cursor()
-        c.execute("insert into caves values (DEFAULT,'"+self.nom+"',"+self.nombrebouteilles+");")
+        c.execute("insert into caves values (DEFAULT,'"+self.nom+"',"+str(self.nombrebouteilles)+");")
         db.commit()
         c.close()
         db.close()
@@ -272,6 +272,7 @@ def cli():
                 new_user = Utilisateur(login,nom,prenom,passwd,inscription)
                 ListeUtilisateurs.append(new_user)
                 new_user.registerBDD()
+                print("Utilisateur créé !")
             elif command == "showuser" or command == "SHOWUSER":
                 if ListeUtilisateurs is None:
                     print("Aucun utilisateur n'existe dans la mémoire")
@@ -303,6 +304,7 @@ def cli():
                     new_cave = Cave(nom,0)
                     ListeCaves.append(new_cave)
                     new_cave.registerBDD()
+                    print("Cave créée !")
                 except TypeError as e:
                     print("Erreur lors du traitement de la commande (TypeError)")
             else:
