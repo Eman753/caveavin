@@ -85,6 +85,10 @@ class Cave:
         self.ListeEtageres.append(etagere)
         return self.ListeEtageres
 
+# Méthode pour remettre à zéro la liste d'étagères
+    def clearEtagere(self):
+        self.ListeEtageres = []
+
 # Méthode utilisée pour enregistrer l'objet sur la BDD
     def registerBDD(self):
         db = sql_conn()
@@ -163,6 +167,35 @@ def recreateCaves():
             c.close()
             db.close()
             return ListeCaves
+        else:
+            error = 2
+            return error
+    except Exception as e:
+        error = 1
+        return error
+
+# Fonction permettant de recréer les objets Python à partir des objets dans la BDD
+def recreateEtageres():
+    error = 0
+    try:
+        db = sql_conn()
+        c = db.cursor()
+        c.execute("select cave,numero,emplacements,nombreBouteilles from etageres;")
+        result = c.fetchall()
+        if result:
+            db = sql_conn()
+            c = db.cursor()
+            for i in result:
+                c.execute("select nom from caves where id = "+str(i[0]))
+                cave_nom = c.fetchone()[0]
+                new_etagere = Etagere(i[1],i[2],i[3])
+                for j in ListeCaves:
+                    if isinstance(j,Cave):
+                        if j.getName() == cave_nom:
+                            j.appendEtagere(new_etagere)
+            c.close()
+            db.close()
+            return error
         else:
             error = 2
             return error
@@ -425,8 +458,10 @@ def cli():
         print("bdd - Entrer en mode BDD pour intéragir avec la BDD")
         print("recreateuser - Recréer les utilisateurs Python à partir de la BDD")
         print("recreatecave - Recréer les caves Python à partir de la BDD")
+        print("recreateetagere - Recréer les étagères Python à partir de la BDD")
         print("clearuser - Vider la liste d'utilisateurs locaux (n'agit pas sur la BDD)")
         print("clearcave - Vider la liste de caves locales (n'agit pas sur la BDD)")
+        print("clearetagere - Vider la liste des étagères locales (n'agit pas sur la BDD)")
         print("register - Enregistrer un utilisateur dans le système")
         print("showuser - Voir la liste d'utilisateurs")
         print("createcave - Créer une cave virtuelle")
@@ -538,6 +573,21 @@ def cli():
                                 if isinstance(j,Etagere):
                                     liste.append(j)
                             print(getAndTabulate(liste,"étagère"))
+            elif command == "recreateetagere" or command == "RECREATEETAGERE":
+                result = recreateCaves()
+                if result == 1:
+                    print("Erreur lors du traitement de la commande (TypeError)")
+                elif result == 2:
+                    print("Aucune étagère présente dans la BDD")
+                else:
+                    recreateEtageres()
+            elif command == "clearetagere" or command == "CLEARETAGERE":
+                for i in ListeCaves:
+                    if isinstance(i,Cave):
+                        i.clearEtagere()
+                print("Liste des étagères remises à zéro")
+                print("")
+                print("Pour recréer les objets étagères, vous pouvez lancer recreateetagere")
             else:
                 print("Commande inconnue")
         except TypeError as e:
@@ -546,5 +596,6 @@ def cli():
 
 recreateUsers()
 recreateCaves()
+recreateEtageres()
 cli()
 exit(0)
