@@ -168,6 +168,15 @@ def getAndTabulateFromBDD(objet):
             c.close()
             db.close()
             return tabulate(tableau,headers=headers, tablefmt="grid")
+    if objet == "étagère":
+        c.execute("select id,cave,numero,emplacements,nombreBouteilles from etageres")
+        result = c.fetchall()
+        if result:
+            tableau = [list(row) for row in result]
+            headers = ["ID","Cave associée","Numéro d'étagère","Nombre d'emplacements de bouteilles","Nombres de bouteilles présentes"]
+            c.close()
+            db.close()
+            return tabulate(tableau,headers=headers, tablefmt="grid")
     else:
         error = 1
         return error
@@ -233,6 +242,7 @@ def bdd():
         print("showcave - Liste des caves présentes dans la BDD")
         print("wipecave - SUPPRIMER L'ENTIERETE DES CAVES DANS LA BDD")
         print("deletecave - Supprimer une cave grâce à son ID")
+        print("showetagere - Liste des étagères présentes dans la BDD")
         try:
             print("")
             command = str(input("BDD# -> "))
@@ -306,6 +316,14 @@ def bdd():
                             print("Suppression effectuée")
                 except Exception as e:
                     print("Une erreur est survenue")
+            elif command == "showetagere" or command == "SHOWETAGERE":
+                result = getAndTabulateFromBDD("étagère")
+                if result == 1:
+                    print("Une erreur a eu lieu pendant le traitement de la demande")
+                elif result == 2:
+                    print("Aucun objet n'a été trouvé dans la BDD")
+                else:
+                    print(result)
             else:
                 print("Commande inconnue")
         except TypeError as e:
@@ -337,6 +355,7 @@ def cli():
         print("register - Enregistrer un utilisateur dans le système")
         print("showuser - Voir la liste d'utilisateurs")
         print("createcave - Créer une cave virtuelle")
+        print("createetagere - Créer une étagère")
         print("")
         try:
             command = str(input("MainCLI# -> "))
