@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost:3306
--- Généré le : mar. 08 oct. 2024 à 12:41
+-- Généré le : mer. 09 oct. 2024 à 06:50
 -- Version du serveur : 11.4.3-MariaDB-1
 -- Version de PHP : 8.2.24
 
@@ -78,8 +78,10 @@ CREATE TABLE IF NOT EXISTS `bouteilles` (
 DROP TABLE IF EXISTS `caves`;
 CREATE TABLE IF NOT EXISTS `caves` (
   `id` int(64) NOT NULL AUTO_INCREMENT COMMENT 'Identifiant unique de la cave virtuelle',
+  `nom` varchar(128) NOT NULL COMMENT 'Nom de la cave',
   `nombresBouteilles` int(64) DEFAULT NULL COMMENT 'Nombre de bouteilles',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `nom` (`nom`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='Liste des caves virtuelles';
 
 -- --------------------------------------------------------
@@ -113,7 +115,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `nom` varchar(64) NOT NULL COMMENT 'Nom de famille de l''utilisateur',
   `prenom` varchar(64) NOT NULL COMMENT 'Prénom de l''utilisateur',
   `passwd` text DEFAULT NULL COMMENT 'Hash du mot de passe de l''utilisateur',
-  `inscription` date DEFAULT NULL COMMENT 'Date d''inscription de l''utilisateur',
+  `inscription` date DEFAULT current_timestamp() COMMENT 'Date d''inscription de l''utilisateur',
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='Liste des utilisateurs du système';
