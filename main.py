@@ -14,7 +14,6 @@ from datetime import date
 # On déclare les listes contenant les objets, afin de pouvoir les stocker en RAM et facilement intéragir avec les objets.
 ListeUtilisateurs = []
 ListeBouteilles = []
-ListeEtageres = []
 ListeCaves = []
 ListeArchives = []
 
@@ -64,9 +63,10 @@ class Utilisateur:
 class Cave:
 
 # Méthode appelée à la création de l'objet pour définir ses attributs
-    def __init__(self,nom,nombrebouteilles):
+    def __init__(self,nom,nombrebouteilles,ListeEtageres):
         self.nom = nom
         self.nombrebouteilles = nombrebouteilles
+        self.ListeEtageres = []
 
 # Méthode pour retourner les attributs de l'objet
     def getInfo(self):
@@ -383,7 +383,7 @@ def cli():
             elif command == "createcave" or command == "CREATECAVE":
                 try:
                     nom = str(input("Nom de la cave -> "))
-                    new_cave = Cave(nom,0)
+                    new_cave = Cave(nom,0,[])
                     ListeCaves.append(new_cave)
                     new_cave.registerBDD()
                     print("Cave créée !")
