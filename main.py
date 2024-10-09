@@ -39,6 +39,7 @@ def hash(message):
 # Classe d'un utilisateur
 class Utilisateur:
     
+# Méthode appelée à la création de l'objet pour définir ses attributs
     def __init__(self,login,nom,prenom,passwd,inscription):
         self.login = login
         self.nom = nom
@@ -46,6 +47,7 @@ class Utilisateur:
         self.passwd = passwd
         self.inscription = inscription
 
+# Méthode utilisée pour enregistrer l'objet sur la BDD
     def registerBDD(self):
         db = sql_conn()
         c = db.cursor()
@@ -54,19 +56,23 @@ class Utilisateur:
         c.close()
         db.close()
 
+# Méthode pour retourner les attributs de l'objet
     def getInfo(self):
         return self.login, self.nom, self.prenom, self.passwd, self.inscription
 
 # Classe d'une cave
 class Cave:
 
+# Méthode appelée à la création de l'objet pour définir ses attributs
     def __init__(self,nom,nombrebouteilles):
         self.nom = nom
         self.nombrebouteilles = nombrebouteilles
 
+# Méthode pour retourner les attributs de l'objet
     def getInfo(self):
         return self.nom, self.nombrebouteilles
 
+# Méthode utilisée pour enregistrer l'objet sur la BDD
     def registerBDD(self):
         db = sql_conn()
         c = db.cursor()
@@ -183,7 +189,7 @@ def wipe(table):
         db.close()
         return error
 
-# Fonction pour supprimer un utilisateur de la BDD
+# Fonction pour supprimer un objet de la BDD
 def deleteFromBDD(id,table):
     error = 0
     db = sql_conn()
@@ -202,7 +208,7 @@ def deleteFromBDD(id,table):
 
 # Second CLI interactif pour les interactions avec la BDD
 # De cette manière, on différencie la gestion des objets Python, qui ne durent que le temps de fonctionnement du programme
-# Et on différencie les objets stockés en BDD
+# Et on différencie les objets stockés en BDD de manière persistente
 def bdd():
     z = True
     print("")
@@ -306,6 +312,7 @@ def bdd():
             print("Erreur lors du traitement de la commande (TypeError)")
 
 # CLI interactif. Peut être utilisé en même temps que Flask.
+# Il n'y a pas de principe d'authentification en CLI, on est administrateur
 # Servira aussi pour journaliser les actions
 def cli():
     z = True
