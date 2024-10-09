@@ -72,6 +72,19 @@ class Cave:
     def getInfo(self):
         return self.nom, self.nombrebouteilles
 
+# Méthode pour récupérer seulement le nom
+    def getName(self):
+        return self.nom
+
+# Méthode pour récupérer seulement la liste d'étagères
+    def getEtageres(self):
+        return self.ListeEtageres
+
+# Méthode pour rajouter une étagère à la liste
+    def appendEtagere(self,etagere):
+        self.ListeEtageres.append(etagere)
+        return self.ListeEtageres
+
 # Méthode utilisée pour enregistrer l'objet sur la BDD
     def registerBDD(self):
         db = sql_conn()
@@ -161,13 +174,21 @@ def recreateCaves():
 # Toutes les classes auront la même méthode getInfo permettant d'extraire les infos
 def getAndTabulate(liste,objet):
     tableau = []
-    for i in liste:
-        if isinstance(i, objet):
-            tableau.append(i.getInfo())  # Récupère les infos sous forme de tuple
-    if objet == Utilisateur:
-        headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
-    if objet == Cave:
-        headers = ["Nom","Nombre de bouteilles"]
+    if objet == "étagère":
+        headers = ["Numéro","Emplacements totaux","Nombre de bouteilles présentes"]
+        for i in liste:
+            if isinstance(i,Etagere):
+                tableau.append(i.getInfo())
+            else:
+                print("Erreur étagère")
+    else:
+        for i in liste:
+            if isinstance(i, objet):
+                tableau.append(i.getInfo())  # Récupère les infos sous forme de tuple
+        if objet == Utilisateur:
+            headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
+        elif objet == Cave:
+            headers = ["Nom","Nombre de bouteilles"]
     return tabulate(tableau, headers=headers, tablefmt="grid")
 
 # Fonction similaire à celle du dessus, mais va chercher dans la BDD
@@ -410,6 +431,7 @@ def cli():
         print("showuser - Voir la liste d'utilisateurs")
         print("createcave - Créer une cave virtuelle")
         print("createetagere - Créer une étagère")
+        print("showetagere - Afficher les étagères présentes dans une cave")
         print("")
         try:
             command = str(input("MainCLI# -> "))
@@ -487,14 +509,35 @@ def cli():
                     print("Erreur lors de la vidange de la liste de caves locales")
             elif command == "createetagere" or command == "createetagere":
                 try:
-                    cave = int(input("ID de la cave associée -> "))
+                    cave_id = int(input("ID de la cave associée -> "))
                     numero = int(input("Numéro de l'étagère dans la cave -> "))
                     emplacements = int(input("Nombre d'emplacements totaux -> "))
+                    db = sql_conn()
+                    c = db.cursor()
+                    c.execute("select nom from caves where id = "+str(cave_id))
+                    cave = c.fetchone()[0]
+                    c.close()
+                    db.close()
                     new_etagere = Etagere(numero,emplacements,0)
-                    new_etagere.registerBDD(cave)
+                    new_etagere.registerBDD(cave_id)
+                    for i in ListeCaves:
+                        if isinstance(i,Cave):
+                            if i.getName() == cave:
+                                print(i.getName())
+                                i.appendEtagere(new_etagere)
                     print("Etagère créée !")
                 except Exception as e:
                     print("Erreur lors du traitement de la commande (Exception)")
+            elif command == "showetagere" or command == "SHOWETAGERE":
+                cave = str(input("Nom de la cave associée -> "))
+                for i in ListeCaves:
+                    if isinstance(i,Cave):
+                        liste = []
+                        if i.getName() == cave:
+                            for j in i.getEtageres():
+                                if isinstance(j,Etagere):
+                                    liste.append(j)
+                            print(getAndTabulate(liste,"étagère"))
             else:
                 print("Commande inconnue")
         except TypeError as e:
