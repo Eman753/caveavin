@@ -64,6 +64,9 @@ class Cave:
         self.nom = nom
         self.nombrebouteilles = nombrebouteilles
 
+    def getInfo(self):
+        return self.nom, self.nombrebouteilles
+
     def registerBDD(self):
         db = sql_conn()
         c = db.cursor()
@@ -93,6 +96,29 @@ def recreateUsers():
             error = 2
             return error
     except TypeError as e:
+        error = 1
+        return error
+
+# Fonction permettant de recréer les objets Python à partir des objets dans la BDD
+def recreateCaves():
+    error = 0
+    ListeCaves.clear()
+    try:
+        db = sql_conn()
+        c = db.cursor()
+        c.execute("select nom,nombresBouteilles from caves;")
+        result = c.fetchall()
+        if result:
+            for row in result:
+                new_cave = Cave(row[0],row[1])
+                ListeCaves.append(new_cave)
+            c.close()
+            db.close()
+            return ListeCaves
+        else:
+            error = 2
+            return error
+    except Exception as e:
         error = 1
         return error
 
@@ -356,6 +382,29 @@ def cli():
                     print("Cave créée !")
                 except TypeError as e:
                     print("Erreur lors du traitement de la commande (TypeError)")
+            elif command == "recreatecave" or command == "RECREATECAVE":
+                result = recreateCaves()
+                if result == 1:
+                    print("Erreur lors du traitement de la commande (TypeError)")
+                elif result == 2:
+                    print("Aucune cave présent dans la BDD")
+                else:
+                    recreateCaves()
+            elif command == "showcave" or command == "SHOWCAVE":
+                if ListeUtilisateurs is None:
+                    print("Aucune cave n'existe dans la mémoire")
+                    print("")
+                    print("S'ils existent dans la BDD, lancez 'recreatecave'")
+                else:
+                    print(getAndTabulate(ListeCaves,Cave))
+            elif command == "clearcave" or command == "CLEARCAVE":
+                try:
+                    ListeCaves.clear()
+                    print("Liste de caves locales vidée !")
+                    print("")
+                    print("Pour ré-actualiser la liste de caves locales à partir de la BDD, lancez recreatecave")
+                except TypeError as e:
+                    print("Erreur lors de la vidange de la liste de caves locales")
             else:
                 print("Commande inconnue")
         except TypeError as e:
@@ -363,5 +412,6 @@ def cli():
     print("Sortie du CLI")
 
 recreateUsers()
+recreateCaves()
 cli()
 exit(0)
