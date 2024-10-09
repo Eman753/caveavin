@@ -57,6 +57,21 @@ class Utilisateur:
     def getInfo(self):
         return self.login, self.nom, self.prenom, self.passwd, self.inscription
 
+# Classe d'une cave
+class Cave:
+
+    def __init__(self,nom,nombrebouteilles):
+        self.nom = nom
+        self.nombrebouteilles = nombrebouteilles
+
+    def registerBDD(self):
+        db = sql_conn()
+        c = db.cursor()
+        c.execute("insert into caves values (DEFAULT,'"+self.nom+"',"+self.nombrebouteilles+");")
+        db.commit()
+        c.close()
+        db.close()
+
 # Fonction permettant de recréer les objets Python à partir des objets dans la BDD
 def recreateUsers():
     error = 0
@@ -239,6 +254,7 @@ def cli():
         print("clearuser - Vider la liste d'utilisateurs locaux (n'agit pas sur la BDD)")
         print("register - Enregistrer un utilisateur dans le système")
         print("showuser - Voir la liste d'utilisateurs")
+        print("createcave - Créer une cave virtuelle")
         print("")
         try:
             command = str(input("MainCLI# -> "))
@@ -281,6 +297,14 @@ def cli():
                     print("Pour ré-actualiser la liste d'utilisateurs locaux à partir de la BDD, lancez recreateuser")
                 except TypeError as e:
                     print("Erreur lors de la vidange de la liste d'utilisateurs locaux")
+            elif command == "createcave" or command == "CREATECAVE":
+                try:
+                    nom = str(input("Nom de la cave -> "))
+                    new_cave = Cave(nom,0)
+                    ListeCaves.append(new_cave)
+                    new_cave.registerBDD()
+                except TypeError as e:
+                    print("Erreur lors du traitement de la commande (TypeError)")
             else:
                 print("Commande inconnue")
         except TypeError as e:
