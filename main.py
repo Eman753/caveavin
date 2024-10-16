@@ -45,6 +45,8 @@ class Utilisateur:
         self.prenom = prenom
         self.passwd = passwd
         self.inscription = inscription
+        self.ListeBouteilles = []
+        self.ListeArchives = []
 
 # Méthode utilisée pour enregistrer l'objet sur la BDD
     def registerBDD(self):
@@ -57,13 +59,13 @@ class Utilisateur:
 
 # Méthode pour retourner les attributs de l'objet
     def getInfo(self):
-        return self.login, self.nom, self.prenom, self.passwd, self.inscription
+        return self.login, self.nom, self.prenom, self.passwd, self.inscription, self.ListeBouteilles, self.ListeArchives
 
 # Classe d'une cave
 class Cave:
 
 # Méthode appelée à la création de l'objet pour définir ses attributs
-    def __init__(self,nom,nombrebouteilles,ListeEtageres):
+    def __init__(self,nom,nombrebouteilles):
         self.nom = nom
         self.nombrebouteilles = nombrebouteilles
         self.ListeEtageres = []
@@ -106,23 +108,51 @@ class Etagere:
         self.numero = numero
         self.emplacements = emplacements
         self.nombreBouteilles = nombreBouteilles
-        ListeBouteilles = []
+        self.ListeBouteilles = []
 
 # Méthode pour retourner les attributs de l'objet
     def getInfo(self):
-        return self.numero,self.emplacements,self.nombreBouteilles
+        return self.numero,self.emplacements,self.nombreBouteilles,self.ListeBouteilles
+
+    def getNumero(self):
+        return self.numero
 
 # Méthode utilisée pour enregistrer l'objet sur la BDD
     def registerBDD(self,cave):
         db = sql_conn()
         c = db.cursor()
-        print("---")
-        print(cave)
-        print(self.numero)
-        print(self.emplacements)
-        print(self.nombreBouteilles)
-        print("---")
         c.execute("insert into etageres values (DEFAULT,"+str(cave)+","+str(self.numero)+","+str(self.emplacements)+","+str(self.nombreBouteilles)+");")
+        db.commit()
+        c.close()
+        db.close()
+
+class Bouteille:
+
+# Méthode de départ pour les attributs
+    def __init__(self,nom,domaine,type,annee,region,prix,commentaires):
+        self.nom = nom
+        self.domaine = domaine
+        self.type = type
+        self.annee = annee
+        self.region = region
+        self.prix = prix
+        self.commentaires = commentaires
+        self.notePerso = 0
+        self.noteCommu = 0
+        self.photo = ""
+
+# Méthode pour définir la note perso
+    def setNotePerso(self,note):
+        self.notePerso = note
+
+# Méthode pour renvoyer les informations
+    def getInfo(self):
+        return self.nom,self.domaine,self.type,self.annee,self.region,self.prix,self.commentaires
+
+    def registerBDD(self,cave,etagere,user):
+        db = sql_conn()
+        c = db.cursror()
+        c.execute("insert into bouteilles values (DEFAULT,"+str(cave)+","+etagere+","+user+",'"+self.nom+"','"+self.domaine+"','"+self.type+"','"+str(self.annee)+"','"+self.region+"',NULL,NULL,NULL,'"+self.prix+"','"+self.commentaires+"');")
         db.commit()
         c.close()
         db.close()
@@ -162,7 +192,9 @@ def recreateCaves():
         result = c.fetchall()
         if result:
             for row in result:
-                new_cave = Cave(row[0],row[1],[])
+                print("ok")
+                print(row)
+                new_cave = Cave(row[0],row[1])
                 ListeCaves.append(new_cave)
             c.close()
             db.close()
@@ -260,6 +292,15 @@ def getAndTabulateFromBDD(objet):
             c.close()
             db.close()
             return tabulate(tableau,headers=headers, tablefmt="grid")
+    if objet == "bouteille":
+        c.execute("select id,cave,etagere,proprietaire,archive,nom,domaine,type,annee,region,notePerso,noteCommu,photo,prix,commentaires from bouteilles")
+        result = c.fetchall()
+        if result:
+            tableau = [list(row) for row in result]
+            headers = ["ID","Cave associée","Numéro d'étagère associée","Propriétaire","Archive associée","Nom","Domaine","Type","Millésime","Région","Note du propriétaire","Note communautaire","Photo","Prix","Commentaire"]
+            c.close()
+            db.close()
+            return tabulate(tableau,headers=headers, tablefmt="grid")
     else:
         error = 1
         return error
@@ -326,6 +367,11 @@ def bdd():
         print("wipecave - SUPPRIMER L'ENTIERETE DES CAVES DANS LA BDD")
         print("deletecave - Supprimer une cave grâce à son ID")
         print("showetagere - Liste des étagères présentes dans la BDD")
+        print("wipeetagere - SUPPRIMER L'ENTIERETE DES ETAGERES DANS LA BDD")
+        print("deleteetagere - Supprimer une étagère grâce à son ID")
+        print("showbouteille - Liste des bouteilles présentes dans la BDD")
+        print("wipebouteille - SUPPRIMER L'ENTIERETE DES BOUTEILLES DANS LA BDD")
+        print("deletebouteille - Supprimer une bouteille grâce à son ID")
         try:
             print("")
             command = str(input("BDD# -> "))
@@ -432,6 +478,25 @@ def bdd():
                             print("Suppression effectuée")
                 except Exception as e:
                     print("Une erreur est survenue")
+            elif command == "showbouteille" or command == "SHOWBOUTEILLE":
+                result = getAndTabulateFromBDD("bouteille")
+                if result == 1:
+                    print("Une erreur a eu lieu pendant le traitement de la demande")
+                elif result == 2:
+                    print("Aucun objet n'a été trouvé dans la BDD")
+                else:
+                    print(result)
+            elif command == "wipebouteille" or command == "WIPEBOUTEILLE":
+                confirm = str(input("Êtes-vous sûr de votre choix ? y/N -> "))
+                print("")
+                if confirm == "y":
+                    result = wipe("bouteilles")
+                    if result == 1:
+                        print("Une erreur est survenue pendant la remise à zéro de la table des bouteilles")
+                    else:
+                        print("Table des bouteilles vidée")
+                else:
+                    print("Opération annulée")
             else:
                 print("Commande inconnue")
         except TypeError as e:
@@ -465,8 +530,10 @@ def cli():
         print("register - Enregistrer un utilisateur dans le système")
         print("showuser - Voir la liste d'utilisateurs")
         print("createcave - Créer une cave virtuelle")
+        print("showcave - Lister les caves Python")
         print("createetagere - Créer une étagère")
         print("showetagere - Afficher les étagères présentes dans une cave")
+        print("createbouteille - Rajouter une bouteille au système")
         print("")
         try:
             command = str(input("MainCLI# -> "))
@@ -513,7 +580,7 @@ def cli():
             elif command == "createcave" or command == "CREATECAVE":
                 try:
                     nom = str(input("Nom de la cave -> "))
-                    new_cave = Cave(nom,0,[])
+                    new_cave = Cave(nom,0)
                     ListeCaves.append(new_cave)
                     new_cave.registerBDD()
                     print("Cave créée !")
@@ -588,6 +655,40 @@ def cli():
                 print("Liste des étagères remises à zéro")
                 print("")
                 print("Pour recréer les objets étagères, vous pouvez lancer recreateetagere")
+            elif command == "createbouteille" or command == "CREATEBOUTEILLE":
+                try:
+                    cave_id = int(input("ID de la cave associée -> "))
+                    etagere_id = int(input("ID de l'étagère -> "))
+                    user = str(input("Utilisateur propriétaire -> "))
+                    nom = str(input("Nom de la bouteille -> "))
+                    domaine = str(input("Domaine de la bouteille -> "))
+                    type = str(input("Type de vin (rouge/rosé/blanc/gris/pinot/pétillant) -> "))
+                    annee = int(input("Millésime -> "))
+                    region = str(input("Région d'origine de la bouteille -> "))
+                    notePerso = int(input("Note personnelle sur 20 -> "))
+                    prix = str(input("Prix de la bouteille -> "))
+                    commentaires = str(input("Commentaires (laisser vide pour aucun) -> "))
+                    new_bouteille = Bouteille(nom,domaine,type,annee,region,prix,commentaires)
+                    db = sql_conn()
+                    c = db.cursor()
+                    c.execute("select cave,numero,emplacements,nombreBouteilles from etageres;")
+                    result = c.fetchall()
+                    if result:
+                        for i in result:
+                            c.execute("select nom from caves where id = "+str(cave_id))
+                            cave_nom = c.fetchone()[0]
+                    else:
+                        print("Erreur lors du traitement des caves")
+                    for i in ListeCaves:
+                        if isinstance(i,Cave):
+                            if i.getName() == cave:
+                                print("Cave trouvée !")
+                                for j in i:
+                                    if isinstance(j,Etagere):
+                                        if j.getNumero() == etagere_id:
+                                            print("Etagère Trouvé !")
+                except Exception as e:
+                    print("Erreur lors de la création de la bouteille")
             else:
                 print("Commande inconnue")
         except TypeError as e:
