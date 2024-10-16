@@ -61,6 +61,14 @@ class Utilisateur:
     def getInfo(self):
         return self.login, self.nom, self.prenom, self.passwd, self.inscription, self.ListeBouteilles, self.ListeArchives
 
+# Méthode pour retourner le nom d'un utilisateur
+    def getName(self):
+        return self.login
+
+# Méthode pour rajouter une bouteille liée à l'utilisateur
+    def appendBouteille(self,bouteille):
+        self.ListeBouteilles.append(bouteille)
+
 # Classe d'une cave
 class Cave:
 
@@ -85,11 +93,19 @@ class Cave:
 # Méthode pour rajouter une étagère à la liste
     def appendEtagere(self,etagere):
         self.ListeEtageres.append(etagere)
-        return self.ListeEtageres
 
 # Méthode pour remettre à zéro la liste d'étagères
     def clearEtagere(self):
         self.ListeEtageres = []
+
+# Méthode pour retourner la liste de bouteilles
+    def getBouteilles(self):
+        liste = []
+        for i in self.ListeEtageres:
+            if isinstance(i,Etagere):
+                liste.append(i.getBouteille)
+        return liste
+            
 
 # Méthode utilisée pour enregistrer l'objet sur la BDD
     def registerBDD(self):
@@ -116,6 +132,14 @@ class Etagere:
 
     def getNumero(self):
         return self.numero
+
+# Méthode pour rajouter une bouteille à l'étagère
+    def appendBouteille(self,bouteille):
+        self.ListeBouteilles.append(bouteille)
+
+# Méthode pour retourner la liste de bouteilles d'une étagère
+    def getBouteille(self):
+        return self.ListeBouteilles
 
 # Méthode utilisée pour enregistrer l'objet sur la BDD
     def registerBDD(self,cave):
@@ -151,8 +175,8 @@ class Bouteille:
 
     def registerBDD(self,cave,etagere,user):
         db = sql_conn()
-        c = db.cursror()
-        c.execute("insert into bouteilles values (DEFAULT,"+str(cave)+","+etagere+","+user+",'"+self.nom+"','"+self.domaine+"','"+self.type+"','"+str(self.annee)+"','"+self.region+"',NULL,NULL,NULL,'"+self.prix+"','"+self.commentaires+"');")
+        c = db.cursor()
+        c.execute("insert into bouteilles values (DEFAULT,"+str(cave)+","+str(etagere)+","+str(user)+",DEFAULT,'"+self.nom+"','"+self.domaine+"','"+self.type+"',"+str(self.annee)+",'"+self.region+"',NULL,NULL,NULL,'"+self.prix+"','"+self.commentaires+"');")
         db.commit()
         c.close()
         db.close()
@@ -239,6 +263,12 @@ def recreateEtageres():
 # Toutes les classes auront la même méthode getInfo permettant d'extraire les infos
 def getAndTabulate(liste,objet):
     tableau = []
+    if objet == "bouteille":
+        headers = ["Nom","Domaine","Type","Année","Région","NotePerso","NoteCommu","Prix","Commentaires"]
+        for i in liste:
+            for j in i:
+                if isinstance(j,Bouteille):
+                    tableau.append(j.getInfo())
     if objet == "étagère":
         headers = ["Numéro","Emplacements totaux","Nombre de bouteilles présentes","Bouteilles"]
         for i in liste:
@@ -534,6 +564,7 @@ def cli():
         print("createetagere - Créer une étagère")
         print("showetagere - Afficher les étagères présentes dans une cave")
         print("createbouteille - Rajouter une bouteille au système")
+        print("showbouteille - Lister les bouteilles présentes dans une cave")
         print("")
         try:
             command = str(input("MainCLI# -> "))
@@ -681,25 +712,51 @@ def cli():
                     else:
                         print("Erreur lors du traitement des caves")
                     for i in ListeCaves:
-                        print("Liste OK")
                         if isinstance(i,Cave):
                             if i.getName() == cave_nom:
-                                print("Cave trouvée !")
                                 liste = i.getEtageres()
                                 print(liste)
                                 for j in liste:
                                     print(j)
                                     if isinstance(j,Etagere):
-                                        print("C'est un étgère")
                                         print(j.getNumero())
                                         if j.getNumero() == etagere_id:
-                                            print("Etagère trouvée !")
+                                            new_bouteille = Bouteille(nom,domaine,type,annee,region,prix,commentaires)
+                                            if isinstance(new_bouteille,Bouteille):
+                                                new_bouteille.setNotePerso(notePerso)
+                                                j.appendBouteille(new_bouteille)
+                                            else:
+                                                print("Erreur de manipulation de la bouteille")
                         else:
                             print("Pas de cave trouvée")
+                    for i in ListeUtilisateurs:
+                        if isinstance(i,Utilisateur):
+                            if i.getName() == user:
+                                i.appendBouteille(new_bouteille)
+                    c.execute("select id from users where login = '"+str(user)+"';")
+                    result = c.fetchone()
+                    if result:
+                        user_id = result[0]
+                    else:
+                        print("Erreur lors de la récupération de l'ID utilisateur")
+                    c.execute("select id from etageres where cave = "+str(cave_id)+";")
+                    result = c.fetchone()
+                    if result:
+                        etagere_id = result[0]
+                    else:
+                        print("Erreur lors de la récupération de l'ID de l'étagère")
+                    new_bouteille.registerBDD(cave_id,etagere_id,user_id)
                 except Exception as e:
                     print("Erreur lors de la création de la bouteille")
                 c.close()
                 db.close()
+            elif command == "showbouteille" or command == "SHOWBOUTEILLE":
+                cave = str(input("Nom de la cave -> "))
+                for i in ListeCaves:
+                    if isinstance(i,Cave):
+                        liste = []
+                        if i.getName() == cave:
+                            liste = i.getBouteilles()
             else:
                 print("Commande inconnue")
         except TypeError as e:
