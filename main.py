@@ -323,7 +323,9 @@ def getAndTabulate(liste,objet):
                 if isinstance(j,Bouteille):
                     print("OK c'est une bouteille !")
                     tableau.append(j.getInfo())
-    if objet == "étagère":
+                else:
+                    print("Erreur bouteille")
+    elif objet == "étagère":
         headers = ["Numéro","Emplacements totaux","Nombre de bouteilles présentes","Bouteilles"]
         for i in liste:
             if isinstance(i,Etagere):
@@ -813,7 +815,7 @@ def cli():
                         if i.getName() == cave:
                             print(i.getName())
                             liste = i.getBouteilles()
-                            getAndTabulate(liste,"bouteille")
+                            print(getAndTabulate(liste,"bouteille"))
             else:
                 print("Commande inconnue")
         except TypeError as e:
