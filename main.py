@@ -240,7 +240,7 @@ def recreateEtageres():
 def getAndTabulate(liste,objet):
     tableau = []
     if objet == "étagère":
-        headers = ["Numéro","Emplacements totaux","Nombre de bouteilles présentes"]
+        headers = ["Numéro","Emplacements totaux","Nombre de bouteilles présentes","Bouteilles"]
         for i in liste:
             if isinstance(i,Etagere):
                 tableau.append(i.getInfo())
@@ -668,6 +668,7 @@ def cli():
                     notePerso = int(input("Note personnelle sur 20 -> "))
                     prix = str(input("Prix de la bouteille -> "))
                     commentaires = str(input("Commentaires (laisser vide pour aucun) -> "))
+                    print("")
                     new_bouteille = Bouteille(nom,domaine,type,annee,region,prix,commentaires)
                     db = sql_conn()
                     c = db.cursor()
@@ -680,15 +681,25 @@ def cli():
                     else:
                         print("Erreur lors du traitement des caves")
                     for i in ListeCaves:
+                        print("Liste OK")
                         if isinstance(i,Cave):
-                            if i.getName() == cave:
+                            if i.getName() == cave_nom:
                                 print("Cave trouvée !")
-                                for j in i:
+                                liste = i.getEtageres()
+                                print(liste)
+                                for j in liste:
+                                    print(j)
                                     if isinstance(j,Etagere):
+                                        print("C'est un étgère")
+                                        print(j.getNumero())
                                         if j.getNumero() == etagere_id:
-                                            print("Etagère Trouvé !")
+                                            print("Etagère trouvée !")
+                        else:
+                            print("Pas de cave trouvée")
                 except Exception as e:
                     print("Erreur lors de la création de la bouteille")
+                c.close()
+                db.close()
             else:
                 print("Commande inconnue")
         except TypeError as e:
