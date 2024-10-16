@@ -48,6 +48,10 @@ class Utilisateur:
         self.ListeBouteilles = []
         self.ListeArchives = []
 
+# Méthode pour remettre à zéro la liste de bouteilles
+    def clearBouteilles(self):
+        self.ListeBouteilles = []
+
 # Méthode utilisée pour enregistrer l'objet sur la BDD
     def registerBDD(self):
         db = sql_conn()
@@ -102,6 +106,13 @@ class Cave:
     def clearEtagere(self):
         self.ListeEtageres = []
 
+# Méthode pour remettre à zéro la liste de bouteilles
+    def clearBouteilles(self):
+        self.nombrebouteilles = 0
+        for i in self.ListeEtageres:
+            if isinstance(i,Etagere):
+                i.clearBouteilles()
+
 # Méthode pour retourner la liste de bouteilles
     def getBouteilles(self):
         liste = []
@@ -146,6 +157,11 @@ class Etagere:
 # Méthode pour retourner la liste de bouteilles d'une étagère
     def getBouteille(self):
         return self.ListeBouteilles
+
+# Méthode pour supprimer la liste de bouteilles
+    def clearBouteilles(self):
+        self.ListeBouteilles = []
+        self.nombreBouteilles = 0
 
 # Méthode utilisée pour enregistrer l'objet sur la BDD
     def registerBDD(self,cave):
@@ -610,9 +626,11 @@ def cli():
         print("recreateuser - Recréer les utilisateurs Python à partir de la BDD")
         print("recreatecave - Recréer les caves Python à partir de la BDD")
         print("recreateetagere - Recréer les étagères Python à partir de la BDD")
+        print("recreatebouteille - Recréer la liste des bouteilles Python à partir de la BDD")
         print("clearuser - Vider la liste d'utilisateurs locaux (n'agit pas sur la BDD)")
         print("clearcave - Vider la liste de caves locales (n'agit pas sur la BDD)")
         print("clearetagere - Vider la liste des étagères locales (n'agit pas sur la BDD)")
+        print("clearbouteille - Vider la liste des bouteilles locales (n'agit pas sur la BDD)")
         print("register - Enregistrer un utilisateur dans le système")
         print("showuser - Voir la liste d'utilisateurs")
         print("createcave - Créer une cave virtuelle")
@@ -734,7 +752,7 @@ def cli():
                 elif result == 2:
                     print("Aucune étagère présente dans la BDD")
                 else:
-                    recreateEtageres()
+                    print("Etagères recréées !")
             elif command == "clearetagere" or command == "CLEARETAGERE":
                 for i in ListeCaves:
                     if isinstance(i,Cave):
@@ -816,6 +834,21 @@ def cli():
                             print(i.getName())
                             liste = i.getBouteilles()
                             print(getAndTabulate(liste,"bouteille"))
+            elif command == "clearbouteille" or command == "CLEARBOUTEILLE":
+                for i in ListeCaves:
+                    if isinstance(i,Cave):
+                        i.clearBouteilles()
+                print("Liste des bouteilles remise à zéro")
+                print("")
+                print("Pour recréer les objets bouteilles, vous pouvez lancer recreatebouteille")
+            elif command == "recreatebouteille" or command == "RECREATEBOUTEILLE":
+                result = recreateBouteilles()
+                if result == 1:
+                    print("Erreur lors du traitement de la commande (TypeError)")
+                elif result == 2:
+                    print("Aucune bouteille présente dans la BDD")
+                else:
+                    print("Bouteilles recréées !")
             else:
                 print("Commande inconnue")
         except TypeError as e:
