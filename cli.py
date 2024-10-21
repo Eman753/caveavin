@@ -404,7 +404,7 @@ def getAndTabulateFromBDD(objet):
             error = 2
             return error
     if objet == "cave":
-        c.execute("select id,nom,nombresBouteilles from caves")
+        c.execute("select id,nom,nombresBouteilles,owner from caves")
         result = c.fetchall()
         if result:
             tableau = [list(row) for row in result]
@@ -468,13 +468,17 @@ def deleteFromBDD(id,table):
         db.close()
         return error
 
-# Etape d'authentification
-def auth():
-    c = 0
+# Initialisation
+def init_cli():
     recreateUsers()
     recreateCaves()
     recreateEtageres()
     recreateBouteilles()
+    auth()
+
+# Etape d'authentification
+def auth():
+    c = 0
     print("")
     while c == 0:
         login = str(input("Login utilisateur -> "))
@@ -503,6 +507,9 @@ def clientCLI(user):
                 user_objet = i
     print("")
     while d == 0:
+        print("exit - Quitter le programme")
+        print("logout - Se déconnecter")
+        print("")
         print("showcave - Afficher vos caves")
         print("showetagere - Afficher vos étagères dans une cave")
         print("showbouteilles - Afficher vos bouteilles dans une cave")
@@ -536,8 +543,23 @@ def clientCLI(user):
                     if i.getName() == cave:
                         liste = i.getBouteilles()
                         print(getAndTabulate(liste,"bouteille"))
+        elif command == "createcave" or command == "CREATECAVE":
+            nom = str(input("Nom de la cave -> "))
+            new_cave = Cave(nom,0)
+            user_objet.appendCave(new_cave)
+            db = sql_conn()
+            c = db.cursor()
+            c.execute("select id from users where login = '"+user+"';")
+            user_id = c.fetchone()[0]
+            new_cave.registerBDD(user_id)
+            c.close()
+            db.close()
+            print("Cave créée")
         elif command == "exit" or command == "EXIT":
             exit(0)
+        elif command == "logout" or command == "LOGOUT":
+            print("Déconnexion de "+user)
+            auth()
         else:
             print("Commande inconnue")
 
@@ -561,6 +583,7 @@ def cli():
         print("Voici les actions disponibles")
         print("")
         print("exit - Quitter le programme")
+        print("logout - Se déconnecter")
         print("bdd - Entrer en mode BDD pour intéragir avec la BDD")
         print("recreateuser - Recréer les utilisateurs Python à partir de la BDD")
         print("recreatecave - Recréer les caves Python à partir de la BDD")
@@ -628,18 +651,12 @@ def cli():
                     db = sql_conn()
                     c = db.cursor()
                     c.execute("select id from users where login = '"+user+"';")
-                    print("Requete")
                     user_id = c.fetchone()[0]
-                    print("Avant objet")
                     new_cave = Cave(nom,0)
-                    print("Objet créé")
                     for i in ListeUtilisateurs:
-                        print("Rentre liste")
                         if isinstance(i,Utilisateur):
                             if i.getName() == user:
-                                print("Avant user")
                                 i.appendCave(new_cave)
-                                print("On est allé jusque là")
                                 new_cave.registerBDD(user_id)
                                 print("Cave créée !")
                     c.close()
@@ -822,6 +839,10 @@ def cli():
                     print("Aucune bouteille présente dans la BDD")
                 else:
                     print("Bouteilles recréées !")
+            elif command == "logout" or command == "LOGOUT":
+                print("Déconnexion du mode console")
+                print("")
+                auth()
             else:
                 print("Commande inconnue")
         except TypeError as e:

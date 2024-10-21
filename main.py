@@ -15,14 +15,14 @@ if __name__ == "__main__":
     choice = str(input("Dans quel mode lancer l'application ? web/console -> "))
     print("")
     if choice == "console":
-        auth()
+        init_cli()
     elif choice == "web":
         ip_address = str(input("Adresse IP du serveur -> "))
         print("")
         print("Activation du serveur web")
         app.run(host=ip_address, port=5001)
     else:
-        auth()
+        init_cli()
 
 
 exit(0)
