@@ -336,6 +336,7 @@ def recreateBouteilles():
                                             if search_etagere.getNumero() == etagere:
                                                 if isinstance(new_bouteille,Bouteille):
                                                     search_etagere.appendBouteille(new_bouteille)
+                                                    search_cave.appendBouteille()
                 for search_user in ListeUtilisateurs:
                     if isinstance(search_user,Utilisateur):
                         if search_user.getName() == user:
@@ -571,6 +572,39 @@ def clientCLI(user):
                         new_etagere.registerBDD(cave_id)
                         i.appendEtagere(new_etagere)
                         print("Etagère ajoutée !")
+        elif command == "createbouteille" or command == "CREATEBOUTEILLE":
+            cave = str(input("Nom de la cave -> "))
+            etagere = int(input("Numéro de l'étagère -> "))
+            nom = str(input("Nom de la bouteille -> "))
+            domaine = str(input("Domaine de la bouteille -> "))
+            type = str(input("Type de vin (rouge/rosé/blanc/gris/pinot/pétillant) -> "))
+            annee = int(input("Millésime -> "))
+            region = str(input("Région d'origine de la bouteille -> "))
+            notePerso = int(input("Note personnelle sur 20 -> "))
+            prix = str(input("Prix de la bouteille -> "))
+            commentaires = str(input("Commentaires (laisser vide pour aucun) -> "))
+            caves = user_objet.getCaves()
+            for i in caves:
+                if isinstance(i,Cave):
+                    if i.getName() == cave:
+                        for j in i.getEtageres():
+                            if isinstance(j,Etagere):
+                                if j.getNumero() == etagere:
+                                    new_bouteille = Bouteille(nom,domaine,type,annee,region,prix,commentaires)
+                                    j.appendBouteille(new_bouteille)
+                                    db = sql_conn()
+                                    c = db.cursor()
+                                    c.execute("select id from users where login = '"+user+"';")
+                                    user_id = c.fetchone()[0]
+                                    c.execute("select id from caves where nom = '"+cave+"';")
+                                    cave_id = c.fetchone()[0]
+                                    c.execute("select id from etageres where numero = '"+str(etagere)+"';")
+                                    etagere_id = c.fetchone()[0]
+                                    new_bouteille.registerBDD(cave_id,etagere_id,user_id)
+                                    i.appendBouteille()
+                                    print("Bouteille créée")
+                                    c.close()
+                                    db.close()
         elif command == "exit" or command == "EXIT":
             exit(0)
         elif command == "logout" or command == "LOGOUT":
