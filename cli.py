@@ -278,13 +278,23 @@ def recreateEtageres():
         result = c.fetchall()
         if result:
             for i in result:
-                c.execute("select nom from caves where id = "+str(i[0]))
-                cave_nom = c.fetchone()[0]
+                c.execute("select nom,owner from caves where id = "+str(i[0]))
+                cave_info = c.fetchone()
+                cave_nom = cave_info[0]
+                user_id = cave_info[1]
+                c.execute("select login from users where id = "+str(user_id)+";")
+                user_nom = c.fetchone()[0]
+                print(cave_nom)
+                print(user_nom)
                 new_etagere = Etagere(i[1],i[2],i[3])
-                for j in ListeCaves:
-                    if isinstance(j,Cave):
-                        if j.getName() == cave_nom:
-                            j.appendEtagere(new_etagere)
+                for j in ListeUtilisateurs:
+                    if isinstance(j,Utilisateur):
+                        if j.getName() == user_nom:
+                            caves = j.getCaves()
+                            for k in caves:
+                                if isinstance(k,Cave):
+                                    if k.getName() == cave_nom:
+                                        k.appendEtagere(new_etagere)
             c.close()
             db.close()
             print("Chargement étagères OK !")
@@ -656,15 +666,18 @@ def cli():
                 except Exception as e:
                     print("Erreur lors du traitement de la commande (Exception)")
             elif command == "showetagere" or command == "SHOWETAGERE":
+                user = str(input("Nom de l'utilisateur associé -> "))
                 cave = str(input("Nom de la cave associée -> "))
-                for i in ListeCaves:
-                    if isinstance(i,Cave):
-                        liste = []
-                        if i.getName() == cave:
-                            for j in i.getEtageres():
-                                if isinstance(j,Etagere):
-                                    liste.append(j)
-                            print(getAndTabulate(liste,"étagère"))
+                for i in ListeUtilisateurs:
+                    if isinstance(i,Utilisateur):
+                        if i.getName() == user:
+                            caves = i.getCaves()
+                            for j in caves:
+                                if isinstance(j,Cave):
+                                    liste = []
+                                    for k in j.getEtageres():
+                                        liste.append(k)
+                                    print(getAndTabulate(liste,"étagère"))
             elif command == "recreateetagere" or command == "RECREATEETAGERE":
                 result = recreateCaves()
                 if result == 1:
