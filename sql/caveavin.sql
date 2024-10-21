@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1deb3
+-- version 5.2.1deb4
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost:3306
--- Généré le : mer. 09 oct. 2024 à 06:50
+-- Généré le : lun. 21 oct. 2024 à 20:14
 -- Version du serveur : 11.4.3-MariaDB-1
 -- Version de PHP : 8.2.24
 
@@ -57,8 +57,8 @@ CREATE TABLE IF NOT EXISTS `bouteilles` (
   `type` enum('rouge','rosé','blanc','gris','pinot','pétillant') NOT NULL COMMENT 'Type de vin',
   `annee` int(64) NOT NULL COMMENT 'Millésime',
   `region` varchar(64) NOT NULL COMMENT 'Origine de la bouteille, ou appellation',
-  `notePerso` enum('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20') NOT NULL COMMENT 'Note personnelle appliquée à la bouteille sur 20',
-  `noteCommu` enum('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20') NOT NULL COMMENT 'Note communautaire appliquée à la bouteille sur 20',
+  `notePerso` enum('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20') DEFAULT NULL COMMENT 'Note personnelle appliquée à la bouteille sur 20',
+  `noteCommu` enum('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20') DEFAULT NULL COMMENT 'Note communautaire appliquée à la bouteille sur 20',
   `photo` text DEFAULT NULL COMMENT 'Chemin amenant à la photo de la bouteille',
   `prix` varchar(64) DEFAULT NULL COMMENT 'Prix de la bouteille',
   `commentaires` text DEFAULT NULL COMMENT 'Commentaires liés à la bouteille',
@@ -80,8 +80,10 @@ CREATE TABLE IF NOT EXISTS `caves` (
   `id` int(64) NOT NULL AUTO_INCREMENT COMMENT 'Identifiant unique de la cave virtuelle',
   `nom` varchar(128) NOT NULL COMMENT 'Nom de la cave',
   `nombresBouteilles` int(64) DEFAULT NULL COMMENT 'Nombre de bouteilles',
+  `owner` int(64) NOT NULL COMMENT 'Identifiant de l''utilisateur associé',
   PRIMARY KEY (`id`),
-  KEY `nom` (`nom`)
+  KEY `nom` (`nom`),
+  KEY `appartenance` (`owner`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='Liste des caves virtuelles';
 
 -- --------------------------------------------------------
@@ -139,6 +141,12 @@ ALTER TABLE `bouteilles`
   ADD CONSTRAINT `historique` FOREIGN KEY (`archive`) REFERENCES `archives` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `personne` FOREIGN KEY (`proprietaire`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `stockage` FOREIGN KEY (`etagere`) REFERENCES `etageres` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Contraintes pour la table `caves`
+--
+ALTER TABLE `caves`
+  ADD CONSTRAINT `appartenance` FOREIGN KEY (`owner`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Contraintes pour la table `etageres`
