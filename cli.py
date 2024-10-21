@@ -129,7 +129,6 @@ class Cave:
         liste = []
         for i in self.ListeEtageres:
             if isinstance(i,Etagere):
-                print("C'est une étagère")
                 liste.append(i.getBouteille())
         return liste
             
@@ -284,8 +283,6 @@ def recreateEtageres():
                 user_id = cave_info[1]
                 c.execute("select login from users where id = "+str(user_id)+";")
                 user_nom = c.fetchone()[0]
-                print(cave_nom)
-                print(user_nom)
                 new_etagere = Etagere(i[1],i[2],i[3])
                 for j in ListeUtilisateurs:
                     if isinstance(j,Utilisateur):
@@ -338,8 +335,6 @@ def recreateBouteilles():
                                         if isinstance(search_etagere,Etagere):
                                             if search_etagere.getNumero() == etagere:
                                                 if isinstance(new_bouteille,Bouteille):
-                                                    print(new_bouteille.getInfo())
-                                                    print("La bouteilel s'ajoute")
                                                     search_etagere.appendBouteille(new_bouteille)
                 for search_user in ListeUtilisateurs:
                     if isinstance(search_user,Utilisateur):
@@ -363,12 +358,8 @@ def getAndTabulate(liste,objet):
     if objet == "bouteille":
         headers = ["Nom","Domaine","Type","Année","Région","NotePerso","NoteCommu","Prix","Commentaires"]
         for i in liste:
-            print("Ok je trouve la liste")
-            print(liste)
             for j in i:
-                print("Ok je trouve la liste de liste")
                 if isinstance(j,Bouteille):
-                    print("OK c'est une bouteille !")
                     tableau.append(j.getInfo())
                 else:
                     print("Erreur bouteille")
@@ -487,7 +478,7 @@ def auth():
     print("")
     while c == 0:
         login = str(input("Login utilisateur -> "))
-        passwd = str(input("Mot de passe -> "))
+        passwd = getpass.getpass(prompt='Mot de passe -> ', stream=None)
         print("")
         passwd = hash(passwd)
         if login == "console":
@@ -506,6 +497,10 @@ def auth():
 # CLI interactif pour simple utilisateur
 def clientCLI(user):
     d = 0
+    for i in ListeUtilisateurs:
+        if isinstance(i,Utilisateur):
+            if user == i.getName():
+                user_objet = i
     print("")
     while d == 0:
         print("showcave - Afficher vos caves")
@@ -518,7 +513,31 @@ def clientCLI(user):
         print("")
         command = str(input("Commande -> "))
         if command == "showcave" or command == "SHOWCAVE":
-            print("showcave")
+            liste = []
+            for i in user_objet.getCaves():
+                liste.append(i)
+            print(getAndTabulate(liste,Cave))
+        elif command == "showetagere" or command == "SHOWETAGERE":
+            cave = str(input("Nom de la cave -> "))
+            caves = user_objet.getCaves()
+            for j in caves:
+                if isinstance(j,Cave):
+                    if j.getName() == cave:
+                        liste = []
+                        for k in j.getEtageres():
+                            liste.append(k)
+                        print(getAndTabulate(liste,"étagère"))
+        elif command == "showbouteille" or command == "SHOWBOUTEILLE":
+            cave = str(input("Nom de la cave -> "))
+            caves = user_objet.getCaves()
+            liste = []
+            for i in caves:
+                if isinstance(i,Cave):
+                    if i.getName() == cave:
+                        liste = i.getBouteilles()
+                        print(getAndTabulate(liste,"bouteille"))
+        elif command == "exit" or command == "EXIT":
+            exit(0)
         else:
             print("Commande inconnue")
 
@@ -744,9 +763,7 @@ def cli():
                                         liste = i.getEtageres()
                                         print(liste)
                                         for j in liste:
-                                            print(j)
                                             if isinstance(j,Etagere):
-                                                print(j.getNumero())
                                                 if j.getNumero() == etagere_id:
                                                     new_bouteille = Bouteille(nom,domaine,type,annee,region,prix,commentaires)
                                                     if isinstance(new_bouteille,Bouteille):
@@ -788,7 +805,6 @@ def cli():
                             if isinstance(i,Cave):
                                 liste = []
                                 if i.getName() == cave:
-                                    print(i.getName())
                                     liste = i.getBouteilles()
                                     print(getAndTabulate(liste,"bouteille"))
             elif command == "clearbouteille" or command == "CLEARBOUTEILLE":
