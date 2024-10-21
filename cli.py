@@ -327,15 +327,20 @@ def recreateBouteilles():
                 user = c.fetchone()[0]
                 new_bouteille = Bouteille(i[3],i[4],i[5],i[6],i[7],i[10],i[11])
                 new_bouteille.setNotePerso(i[8])
-                for search_cave in ListeCaves:
-                    if isinstance(search_cave,Cave):
-                        if search_cave.getName() == cave_nom:
-                            liste_etagere = search_cave.getEtageres()
-                            for search_etagere in liste_etagere:
-                                if isinstance(search_etagere,Etagere):
-                                    if search_etagere.getNumero() == etagere:
-                                        if isinstance(new_bouteille,Bouteille):
-                                            search_etagere.appendBouteille(new_bouteille)
+                for i in ListeUtilisateurs:
+                    if isinstance(i,Utilisateur):
+                        caves = i.getCaves()
+                        for search_cave in caves:
+                            if isinstance(search_cave,Cave):
+                                if search_cave.getName() == cave_nom:
+                                    liste_etagere = search_cave.getEtageres()
+                                    for search_etagere in liste_etagere:
+                                        if isinstance(search_etagere,Etagere):
+                                            if search_etagere.getNumero() == etagere:
+                                                if isinstance(new_bouteille,Bouteille):
+                                                    print(new_bouteille.getInfo())
+                                                    print("La bouteilel s'ajoute")
+                                                    search_etagere.appendBouteille(new_bouteille)
                 for search_user in ListeUtilisateurs:
                     if isinstance(search_user,Utilisateur):
                         if search_user.getName() == user:
@@ -718,23 +723,26 @@ def cli():
                             cave_nom = c.fetchone()[0]
                     else:
                         print("Erreur lors du traitement des caves")
-                    for i in ListeCaves:
-                        if isinstance(i,Cave):
-                            if i.getName() == cave_nom:
-                                liste = i.getEtageres()
-                                print(liste)
-                                for j in liste:
-                                    print(j)
-                                    if isinstance(j,Etagere):
-                                        print(j.getNumero())
-                                        if j.getNumero() == etagere_id:
-                                            new_bouteille = Bouteille(nom,domaine,type,annee,region,prix,commentaires)
-                                            if isinstance(new_bouteille,Bouteille):
-                                                new_bouteille.setNotePerso(notePerso)
-                                                j.appendBouteille(new_bouteille)
-                                            else:
-                                                print("Erreur de manipulation de la bouteille")
-                                i.appendBouteille()
+                    for h in ListeUtilisateurs:
+                        if isinstance(h,Utilisateur):
+                            caves = h.getCaves()
+                            for i in caves:
+                                if isinstance(i,Cave):
+                                    if i.getName() == cave_nom:
+                                        liste = i.getEtageres()
+                                        print(liste)
+                                        for j in liste:
+                                            print(j)
+                                            if isinstance(j,Etagere):
+                                                print(j.getNumero())
+                                                if j.getNumero() == etagere_id:
+                                                    new_bouteille = Bouteille(nom,domaine,type,annee,region,prix,commentaires)
+                                                    if isinstance(new_bouteille,Bouteille):
+                                                        new_bouteille.setNotePerso(notePerso)
+                                                        j.appendBouteille(new_bouteille)
+                                                    else:
+                                                        print("Erreur de manipulation de la bouteille")
+                                        i.appendBouteille()
                         else:
                             print("Pas de cave trouvée")
                     for i in ListeUtilisateurs:
@@ -759,14 +767,18 @@ def cli():
                 c.close()
                 db.close()
             elif command == "showbouteille" or command == "SHOWBOUTEILLE":
+                user = str(input("Utilisateur -> "))
                 cave = str(input("Nom de la cave -> "))
-                for i in ListeCaves:
-                    if isinstance(i,Cave):
-                        liste = []
-                        if i.getName() == cave:
-                            print(i.getName())
-                            liste = i.getBouteilles()
-                            print(getAndTabulate(liste,"bouteille"))
+                for h in ListeUtilisateurs:
+                    if isinstance(h,Utilisateur):
+                        caves = h.getCaves()
+                        for i in caves:
+                            if isinstance(i,Cave):
+                                liste = []
+                                if i.getName() == cave:
+                                    print(i.getName())
+                                    liste = i.getBouteilles()
+                                    print(getAndTabulate(liste,"bouteille"))
             elif command == "clearbouteille" or command == "CLEARBOUTEILLE":
                 for i in ListeCaves:
                     if isinstance(i,Cave):
