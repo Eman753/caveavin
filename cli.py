@@ -391,7 +391,7 @@ def getAndTabulate(liste,objet):
             if isinstance(i, objet):
                 tableau.append(i.getInfo())  # Récupère les infos sous forme de tuple
         if objet == Utilisateur:
-            headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
+            headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription","Nombre de bouteilles",""]
     return tabulate(tableau, headers=headers, tablefmt="grid")
 
 # Fonction similaire à celle du dessus, mais va chercher dans la BDD
@@ -508,7 +508,19 @@ def clientCLI(user):
     d = 0
     print("")
     while d == 0:
-        print("OK")
+        print("showcave - Afficher vos caves")
+        print("showetagere - Afficher vos étagères dans une cave")
+        print("showbouteilles - Afficher vos bouteilles dans une cave")
+        print("")
+        print("createcave - Créer une cave")
+        print("createetagere - Créer une étagère")
+        print("createbouteille - Créer une bouteille")
+        print("")
+        command = str(input("Commande -> "))
+        if command == "showcave" or command == "SHOWCAVE":
+            print("showcave")
+        else:
+            print("Commande inconnue")
 
 
 # CLI interactif. Peut être utilisé en même temps que Flask.
