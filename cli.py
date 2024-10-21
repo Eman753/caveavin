@@ -45,6 +45,7 @@ class Utilisateur:
         self.inscription = inscription
         self.ListeBouteilles = []
         self.ListeArchives = []
+        self.ListeCaves = []
 
 # Méthode pour remettre à zéro la liste de bouteilles
     def clearBouteilles(self):
@@ -67,9 +68,21 @@ class Utilisateur:
     def getName(self):
         return self.login
 
+# Méthode pour retourner le mot de passe hashé
+    def getPasswd(self):
+        return self.passwd
+
+# Méthode pour retourner la liste de caves
+    def getCaves(self):
+        return self.ListeCaves
+
 # Méthode pour rajouter une bouteille liée à l'utilisateur
     def appendBouteille(self,bouteille):
         self.ListeBouteilles.append(bouteille)
+
+# Méthode pour rajouter une cave liée à l'utilisateur
+    def appendCave(self,cave):
+        self.ListeCaves.append(cave)
 
 # Classe d'une cave
 class Cave:
@@ -122,10 +135,10 @@ class Cave:
             
 
 # Méthode utilisée pour enregistrer l'objet sur la BDD
-    def registerBDD(self):
+    def registerBDD(self,user_id):
         db = sql_conn()
         c = db.cursor()
-        c.execute("insert into caves values (DEFAULT,'"+self.nom+"',"+str(self.nombrebouteilles)+");")
+        c.execute("insert into caves values (DEFAULT,'"+self.nom+"',"+str(self.nombrebouteilles)+","+str(user_id)+");")
         db.commit()
         c.close()
         db.close()
@@ -233,12 +246,17 @@ def recreateCaves():
     try:
         db = sql_conn()
         c = db.cursor()
-        c.execute("select nom,nombresBouteilles from caves;")
+        c.execute("select nom,nombresBouteilles,owner from caves;")
         result = c.fetchall()
         if result:
             for row in result:
+                c.execute("select login from users where id = "+str(row[2]))
+                user = c.fetchone()[0]
                 new_cave = Cave(row[0],row[1])
-                ListeCaves.append(new_cave)
+                for i in ListeUtilisateurs:
+                    if isinstance(i,Utilisateur):
+                        if i.getName() == user:
+                            i.appendCave(new_cave)
             c.close()
             db.close()
             print("Chargement caves OK !")
@@ -346,14 +364,19 @@ def getAndTabulate(liste,objet):
                 tableau.append(i.getInfo())
             else:
                 print("Erreur étagère")
+    elif objet == Cave:
+        headers = ["Nom de la cave","Nombre de bouteilles"]
+        for i in liste:
+            if isinstance(i,Cave):
+                tableau.append(i.getInfo())
+            else:
+                print("Erreur cave")
     else:
         for i in liste:
             if isinstance(i, objet):
                 tableau.append(i.getInfo())  # Récupère les infos sous forme de tuple
         if objet == Utilisateur:
             headers = ["Login", "Nom", "Prénom", "Mot de passe hashé", "Date d'inscription"]
-        elif objet == Cave:
-            headers = ["Nom","Nombre de bouteilles"]
     return tabulate(tableau, headers=headers, tablefmt="grid")
 
 # Fonction similaire à celle du dessus, mais va chercher dans la BDD
@@ -379,7 +402,7 @@ def getAndTabulateFromBDD(objet):
         result = c.fetchall()
         if result:
             tableau = [list(row) for row in result]
-            headers = ["ID","Nom","Nombre de bouteilles"]
+            headers = ["ID","Nom","Nombre de bouteilles","ID utilisateur associé"]
             c.close()
             db.close()
             return tabulate(tableau,headers=headers, tablefmt="grid")
@@ -439,15 +462,45 @@ def deleteFromBDD(id,table):
         db.close()
         return error
 
+# Etape d'authentification
+def auth():
+    c = 0
+    recreateUsers()
+    recreateCaves()
+    recreateEtageres()
+    recreateBouteilles()
+    print("")
+    while c == 0:
+        login = str(input("Login utilisateur -> "))
+        passwd = str(input("Mot de passe -> "))
+        print("")
+        passwd = hash(passwd)
+        if login == "console":
+            c = 1
+            cli()
+        for i in ListeUtilisateurs:
+            if isinstance(i,Utilisateur):
+                if i.getName() == login:
+                    if i.getPasswd() == passwd:
+                        print("Utilisateur authentifié !")
+                        clientCLI(login)
+                    else:
+                        print("Utilisateur / mot de passe incorrect")
+        print("Utilisateur introuvable")
+
+# CLI interactif pour simple utilisateur
+def clientCLI(user):
+    d = 0
+    print("")
+    while d == 0:
+        print("OK")
+
+
 # CLI interactif. Peut être utilisé en même temps que Flask.
 # Il n'y a pas de principe d'authentification en CLI, on est administrateur
 # Servira aussi pour journaliser les actions
 def cli():
     # Initialisation des objets
-    recreateUsers()
-    recreateCaves()
-    recreateEtageres()
-    recreateBouteilles()
     z = True
     print("")
     print("------------------------------------------------------------------------------------")
@@ -525,10 +578,26 @@ def cli():
             elif command == "createcave" or command == "CREATECAVE":
                 try:
                     nom = str(input("Nom de la cave -> "))
+                    user = str(input("Nom de l'utilisateur associé -> "))
+                    db = sql_conn()
+                    c = db.cursor()
+                    c.execute("select id from users where login = '"+user+"';")
+                    print("Requete")
+                    user_id = c.fetchone()[0]
+                    print("Avant objet")
                     new_cave = Cave(nom,0)
-                    ListeCaves.append(new_cave)
-                    new_cave.registerBDD()
-                    print("Cave créée !")
+                    print("Objet créé")
+                    for i in ListeUtilisateurs:
+                        print("Rentre liste")
+                        if isinstance(i,Utilisateur):
+                            if i.getName() == user:
+                                print("Avant user")
+                                i.appendCave(new_cave)
+                                print("On est allé jusque là")
+                                new_cave.registerBDD(user_id)
+                                print("Cave créée !")
+                    c.close()
+                    db.close()
                 except TypeError as e:
                     print("Erreur lors du traitement de la commande (TypeError)")
             elif command == "recreatecave" or command == "RECREATECAVE":
@@ -545,7 +614,12 @@ def cli():
                     print("")
                     print("S'ils existent dans la BDD, lancez 'recreatecave'")
                 else:
-                    print(getAndTabulate(ListeCaves,Cave))
+                    for i in ListeUtilisateurs:
+                        if isinstance(i,Utilisateur):
+                            print("Caves de "+str(i.getName()))
+                            print("")
+                            liste = i.getCaves()
+                    print(getAndTabulate(liste,Cave))
             elif command == "clearcave" or command == "CLEARCAVE":
                 try:
                     ListeCaves.clear()
@@ -556,6 +630,7 @@ def cli():
                     print("Erreur lors de la vidange de la liste de caves locales")
             elif command == "createetagere" or command == "createetagere":
                 try:
+                    user_id = int(input("ID de l'utilisateur propriétaire -> "))
                     cave_id = int(input("ID de la cave associée -> "))
                     numero = int(input("Numéro de l'étagère dans la cave -> "))
                     emplacements = int(input("Nombre d'emplacements totaux -> "))
@@ -563,15 +638,20 @@ def cli():
                     c = db.cursor()
                     c.execute("select nom from caves where id = "+str(cave_id))
                     cave = c.fetchone()[0]
+                    c.execute("select login from users where id = "+str(user_id))
+                    user = c.fetchone()[0]
                     c.close()
                     db.close()
                     new_etagere = Etagere(numero,emplacements,0)
                     new_etagere.registerBDD(cave_id)
-                    for i in ListeCaves:
-                        if isinstance(i,Cave):
-                            if i.getName() == cave:
-                                print(i.getName())
-                                i.appendEtagere(new_etagere)
+                    for i in ListeUtilisateurs:
+                        if isinstance(i,Utilisateur):
+                            if i.getName() == user:
+                                caves = i.getCaves()
+                                for j in caves:
+                                    if isinstance(j,Cave):
+                                        if j.getName() == cave:
+                                            j.appendEtagere(new_etagere)
                     print("Etagère créée !")
                 except Exception as e:
                     print("Erreur lors du traitement de la commande (Exception)")
