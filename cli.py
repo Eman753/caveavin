@@ -555,6 +555,22 @@ def clientCLI(user):
             c.close()
             db.close()
             print("Cave créée")
+        elif command == "createetagere" or command == "CREATEETAGERE":
+            cave = str(input("Nom de la cave associée -> "))
+            numero = int(input("Numéro de l'étagère -> "))
+            emplacements = int(input("Nombre d'emplacements -> "))
+            caves = user_objet.getCaves()
+            for i in caves:
+                if isinstance(i,Cave):
+                    if i.getName() == cave:
+                        new_etagere = Etagere(numero,emplacements,0)
+                        db = sql_conn()
+                        c = db.cursor()
+                        c.execute("select id from caves where nom = '"+cave+"';")
+                        cave_id = c.fetchone()[0]
+                        new_etagere.registerBDD(cave_id)
+                        i.appendEtagere(new_etagere)
+                        print("Etagère ajoutée !")
         elif command == "exit" or command == "EXIT":
             exit(0)
         elif command == "logout" or command == "LOGOUT":
