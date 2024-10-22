@@ -220,6 +220,7 @@ def recreateUsers():
     try:
         db = sql_conn()
         c = db.cursor()
+        # On récupère les objets depuis la BDD
         c.execute("select login,nom,prenom,passwd,inscription from users")
         result = c.fetchall()
         if result:
@@ -245,10 +246,12 @@ def recreateCaves():
     try:
         db = sql_conn()
         c = db.cursor()
+        # On récupère les objets depuis la BDD
         c.execute("select nom,nombresBouteilles,owner from caves;")
         result = c.fetchall()
         if result:
             for row in result:
+                # On traite chaque cave et on l'associe à un utilisateur ; cette fonction doit-être appelée après recreateUsers
                 c.execute("select login from users where id = "+str(row[2]))
                 user = c.fetchone()[0]
                 new_cave = Cave(row[0],row[1])
@@ -273,10 +276,12 @@ def recreateEtageres():
     try:
         db = sql_conn()
         c = db.cursor()
+        # On récupère les objets depuis la BDD
         c.execute("select cave,numero,emplacements,nombreBouteilles from etageres;")
         result = c.fetchall()
         if result:
             for i in result:
+                # On traite chaque cave et on l'associe à une cave ; cette fonction doit-être appelée après recreateCaves
                 c.execute("select nom,owner from caves where id = "+str(i[0]))
                 cave_info = c.fetchone()
                 cave_nom = cave_info[0]
@@ -312,10 +317,12 @@ def recreateBouteilles():
     try:
         db = sql_conn()
         c = db.cursor()
+        # On récupère les objets depuis la BDD
         c.execute("select cave,etagere,proprietaire,nom,domaine,type,annee,region,notePerso,noteCommu,prix,commentaires from bouteilles;")
         result = c.fetchall()
         if result:
             for i in result:
+                # On traite chaque cave et on l'associe à une étagère ; cette fonction doit-être appelée après recreateEtageres
                 c.execute("select nom from caves where id = "+str(i[0])+";")
                 cave_nom = c.fetchone()[0]
                 c.execute("select numero from etageres where id = "+str(i[1])+";")
@@ -324,6 +331,7 @@ def recreateBouteilles():
                 user = c.fetchone()[0]
                 new_bouteille = Bouteille(i[3],i[4],i[5],i[6],i[7],i[10],i[11])
                 new_bouteille.setNotePerso(i[8])
+                # Longue suite pour associer une bouteille à une étagère, elle-même associée à une cave, elle-même associée à un utilisateur
                 for i in ListeUtilisateurs:
                     if isinstance(i,Utilisateur):
                         caves = i.getCaves()
@@ -469,7 +477,7 @@ def deleteFromBDD(id,table):
         db.close()
         return error
 
-# Initialisation
+# Initialisation des objets avant toute manipulation. On récupère les objets dans la BDD et on les convertit en objets Python (manipulables)
 def init_cli():
     recreateUsers()
     recreateCaves()
@@ -482,18 +490,28 @@ def auth():
     c = 0
     print("")
     while c == 0:
+        # On demande un login et un mot de passe, puis on hashe le résultat, et on compare avec l'utilisateur correspondant (s'il existe)
         login = str(input("Login utilisateur -> "))
+        if login == "exit":
+            print("Sortie du programme")
+            exit(0)
         passwd = getpass.getpass(prompt='Mot de passe -> ', stream=None)
         print("")
         passwd = hash(passwd)
+        # L'utilisateur console est générique et dispose de tous les droits, pas d'authentification pour lui, c'est l'administrateur
         if login == "console":
             c = 1
             cli()
+        # Recherche de l'utilisateur
         for i in ListeUtilisateurs:
             if isinstance(i,Utilisateur):
                 if i.getName() == login:
                     if i.getPasswd() == passwd:
-                        print("Utilisateur authentifié !")
+                        print("#############################")
+                        print("# Utilisateur authentifié ! #")
+                        print("#############################")
+                        print("")
+                        print("Bienvenue "+login)
                         clientCLI(login)
                     else:
                         print("Utilisateur / mot de passe incorrect")
@@ -520,6 +538,7 @@ def clientCLI(user):
         print("createbouteille - Créer une bouteille")
         print("")
         command = str(input("Commande -> "))
+        print("")
         if command == "showcave" or command == "SHOWCAVE":
             liste = []
             for i in user_objet.getCaves():
@@ -609,9 +628,11 @@ def clientCLI(user):
             exit(0)
         elif command == "logout" or command == "LOGOUT":
             print("Déconnexion de "+user)
+            d = 1
             auth()
         else:
             print("Commande inconnue")
+        print("")
 
 
 # CLI interactif. Peut être utilisé en même temps que Flask.
@@ -634,22 +655,27 @@ def cli():
         print("")
         print("exit - Quitter le programme")
         print("logout - Se déconnecter")
+        print("")
         print("bdd - Entrer en mode BDD pour intéragir avec la BDD")
+        print("")
         print("recreateuser - Recréer les utilisateurs Python à partir de la BDD")
         print("recreatecave - Recréer les caves Python à partir de la BDD")
         print("recreateetagere - Recréer les étagères Python à partir de la BDD")
         print("recreatebouteille - Recréer la liste des bouteilles Python à partir de la BDD")
+        print("")
         print("clearuser - Vider la liste d'utilisateurs locaux (n'agit pas sur la BDD)")
         print("clearcave - Vider la liste de caves locales (n'agit pas sur la BDD)")
         print("clearetagere - Vider la liste des étagères locales (n'agit pas sur la BDD)")
         print("clearbouteille - Vider la liste des bouteilles locales (n'agit pas sur la BDD)")
+        print("")
         print("register - Enregistrer un utilisateur dans le système")
-        print("showuser - Voir la liste d'utilisateurs")
         print("createcave - Créer une cave virtuelle")
-        print("showcave - Lister les caves Python")
         print("createetagere - Créer une étagère")
-        print("showetagere - Afficher les étagères présentes dans une cave")
         print("createbouteille - Rajouter une bouteille au système")
+        print("")
+        print("showuser - Voir la liste d'utilisateurs")
+        print("showcave - Lister les caves Python")
+        print("showetagere - Afficher les étagères présentes dans une cave")
         print("showbouteille - Lister les bouteilles présentes dans une cave")
         print("")
         try:
@@ -899,7 +925,7 @@ def cli():
             print("Erreur lors du traitement de la commande (TypeError)")
     print("Sortie du CLI")
 
-    # Second CLI interactif pour les interactions avec la BDD
+# Second CLI interactif pour les interactions avec la BDD
 # De cette manière, on différencie la gestion des objets Python, qui ne durent que le temps de fonctionnement du programme
 # Et on différencie les objets stockés en BDD de manière persistente
 def bdd():
@@ -921,17 +947,21 @@ def bdd():
         print("")
         print("exit - Sortir du mode BDD")
         print("showuser - Liste les utilisateurs présents dans la BDD")
-        print("wipeuser - SUPPRIMER L'ENTIERETE DES UTILISATEURS DE LA BDD")
-        print("deleteuser - Supprimer un utilisateur grâce à son ID")
         print("showcave - Liste des caves présentes dans la BDD")
-        print("wipecave - SUPPRIMER L'ENTIERETE DES CAVES DANS LA BDD")
-        print("deletecave - Supprimer une cave grâce à son ID")
         print("showetagere - Liste des étagères présentes dans la BDD")
-        print("wipeetagere - SUPPRIMER L'ENTIERETE DES ETAGERES DANS LA BDD")
-        print("deleteetagere - Supprimer une étagère grâce à son ID")
         print("showbouteille - Liste des bouteilles présentes dans la BDD")
-        print("wipebouteille - SUPPRIMER L'ENTIERETE DES BOUTEILLES DANS LA BDD")
+        print("")
+        print("deleteuser - Supprimer un utilisateur grâce à son ID")
+        print("deletecave - Supprimer une cave grâce à son ID")
+        print("deleteetagere - Supprimer une étagère grâce à son ID")
         print("deletebouteille - Supprimer une bouteille grâce à son ID")
+        print("")
+        print("###################################################################")
+        print("wipeuser - SUPPRIMER L'ENTIERETE DES UTILISATEURS DE LA BDD")
+        print("wipecave - SUPPRIMER L'ENTIERETE DES CAVES DANS LA BDD")
+        print("wipeetagere - SUPPRIMER L'ENTIERETE DES ETAGERES DANS LA BDD")
+        print("wipebouteille - SUPPRIMER L'ENTIERETE DES BOUTEILLES DANS LA BDD")
+        print("###################################################################")
         try:
             print("")
             command = str(input("BDD# -> "))

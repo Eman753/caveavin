@@ -4,6 +4,11 @@ from cli import *
 from flask import Flask,render_template
 
 # Script principal de caveavin
+# De base, on devait avoir CLI + Flask, mais Flask a été compliqué à mettre en place
+
+# ===============================================#
+# L'essentiel du programme se trouve dans cli.py #
+# ===============================================#
 
 app = Flask(__name__)
 
